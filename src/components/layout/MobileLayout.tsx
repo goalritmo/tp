@@ -53,16 +53,54 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
         </Toolbar>
       </AppBar>
 
-      {/* Main content */}
-      <Box 
-        component="main" 
-        sx={{ 
-          flex: 1, 
+            {/* Main content */}
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
           pt: 'env(safe-area-inset-top)',
           mt: 8, // Space for fixed AppBar
+          mb: 6, // Space for footer
         }}
       >
         {children}
+      </Box>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          py: 2,
+          backgroundColor: '#fff',
+          zIndex: 9999,
+          boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
+        }}
+      >
+        <Box
+          component="a"
+          href="https://moovimiento.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            color: '#1976d2',
+            textDecoration: 'none',
+            fontSize: '0.9rem',
+            '&:hover': {
+              color: '#ed6c02', // Naranja warning
+            },
+            transition: 'color 0.2s ease',
+          }}
+        >
+          ⚡ Powered by Moovimiento
+        </Box>
       </Box>
     </Box>
   )

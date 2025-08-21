@@ -33,10 +33,10 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
       <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1, backgroundColor: 'primary.main' }}>
         <Toolbar sx={{ 
           justifyContent: 'center',
-          px: { xs: 3, md: 8 },
+          px: { xs: 3, md: 4 },
           maxWidth: '1000px',
           mx: 'auto',
-          width: '80%'
+          width: '100%'
         }}>
           {/* Navigation Menu */}
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -69,12 +69,49 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
           py: 3,
           px: { xs: 3, md: 7 },
           mt: 8, // Space for fixed AppBar
+          mb: 6, // Space for footer
           maxWidth: '1000px',
           mx: 'auto',
           width: '100%',
         }}
       >
         {children}
+      </Box>
+
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          py: 2,
+          backgroundColor: '#fff',
+          zIndex: 9999,
+        }}
+      >
+        <Box
+          component="a"
+          href="https://moovimiento.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            color: '#1976d2',
+            textDecoration: 'none',
+            fontSize: '0.9rem',
+            '&:hover': {
+              color: '#ed6c02', // Naranja warning
+            },
+            transition: 'color 0.2s ease',
+          }}
+        >
+          ⚡ Powered by Moovimiento
+        </Box>
       </Box>
     </Box>
   )
