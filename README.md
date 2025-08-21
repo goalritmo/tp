@@ -341,7 +341,3 @@ La aplicación debe funcionar perfectamente en:
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para detalles.
-
----
-
-**¡Empecemos a construir! 🚀**
