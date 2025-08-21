@@ -1,0 +1,120 @@
+1. Objetivo General
+
+La aplicación permite a estudiantes universitarios llevar un registro de ejercicios de trabajos prácticos (TPs) y organizarse en grupos de estudio, donde cada miembro puede visualizar avances, progresos y dificultades de los demás, fomentando la colaboración y el trabajo al mismo ritmo.
+
+2. Funcionalidades Principales
+🔑 Autenticación y usuarios
+
+Registro/login (email, Google, GitHub o SSO de la facultad si existiera).
+
+Perfil de usuario con:
+
+Nombre / Apodo
+
+Carrera / Materia
+
+Foto/avatar
+
+Estado de avance general
+
+📂 Gestión de Trabajos Prácticos
+
+Crear un TP con:
+
+Nombre
+
+Materia
+
+Fecha de entrega
+
+Objetivos / consignas
+
+Dentro de cada TP:
+
+Crear ejercicios individuales con checkboxes o porcentajes de avance.
+
+Posibilidad de asignar "dificultad percibida" o etiquetas (ej: fácil / medio / difícil).
+
+Agregar links o archivos adjuntos de resolución/apuntes.
+
+👥 Grupos de Estudio
+
+Crear grupo de estudio por materia/TP.
+
+Roles: admin (crea, organiza) y miembro.
+
+Invitar usuarios con link o código.
+
+Cada miembro puede:
+
+Ver el progreso de todos en el grupo.
+
+Compartir notas o soluciones parciales.
+
+Dejar comentarios en ejercicios (ej: “me trabé en el 4, ¿alguien me ayuda?”).
+
+Tablero general:
+
+Barra de progreso del grupo.
+
+Ranking amistoso (gamificación: quién completó más ejercicios).
+
+📊 Seguimiento de Progreso
+
+Vista individual:
+
+% de avance de cada TP.
+
+Historial de ejercicios completados.
+
+Vista grupal:
+
+% global del grupo.
+
+Comparación entre compañeros.
+
+Notificaciones:
+
+“Tu grupo está en 70%, te falta poco”.
+
+“X compañero resolvió el ejercicio que vos no habías podido”.
+
+💬 Colaboración y Motivación
+
+Chat dentro del grupo (básico, estilo Discord/Slack).
+
+Reacciones rápidas (👍, 🚀, 🆘).
+
+Posibilidad de pedir ayuda en un ejercicio puntual.
+
+“Tips compartidos”: cada miembro puede publicar su forma de resolver algo.
+
+3. Extras para Futuro
+
+Integración con Google Drive/Notion para adjuntar materiales.
+
+Algoritmo de “match” para recomendar compañeros de estudio según ritmo.
+
+Estadísticas semanales (ej: horas de estudio registradas, % de mejora).
+
+Modo offline (app móvil).
+
+4. Tecnologías sugeridas (MVP web-app)
+
+Frontend: React (con Tailwind para UI).
+
+Backend: Supabase / Firebase (autenticación, base de datos, realtime).
+
+DB: PostgreSQL (estructuras claras de usuarios, grupos, TPs, ejercicios).
+
+Notificaciones: Push con OneSignal o el propio Firebase.
+
+5. Métricas de éxito (qué medir)
+
+Cantidad de usuarios activos por semana.
+
+Número de ejercicios completados por grupo.
+
+% de TPs finalizados.
+
+Participación en los grupos (mensajes, reacciones, colaboraciones).

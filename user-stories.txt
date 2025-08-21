@@ -1,0 +1,47 @@
+🔑 Autenticación & Perfil
+
+Como estudiante, quiero registrarme con email o Google, para poder acceder rápido a la app.
+
+Como estudiante, quiero tener un perfil con mi nombre, carrera y foto, para que mis compañeros me identifiquen en los grupos.
+
+📂 Gestión de TPs y ejercicios
+
+Como estudiante, quiero crear un trabajo práctico con nombre, materia y fecha de entrega, para organizar mi cursada.
+
+Como estudiante, quiero agregar ejercicios dentro del TP, para marcar mi progreso paso a paso.
+
+Como estudiante, quiero marcar un ejercicio como completado, para visualizar cuánto avancé.
+
+Como estudiante, quiero asignar dificultad a un ejercicio (fácil, medio, difícil), para que el grupo sepa dónde suelen estar los bloqueos.
+
+Como estudiante, quiero subir archivos o links a la resolución, para compartir mis avances o consultar después.
+
+👥 Grupos de Estudio
+
+Como estudiante, quiero crear un grupo de estudio por materia/TP, para colaborar con mis compañeros.
+
+Como estudiante, quiero invitar compañeros con un link o código, para sumarlos fácilmente al grupo.
+
+Como miembro de grupo, quiero ver el progreso de mis compañeros, para tener una idea del avance colectivo.
+
+Como miembro de grupo, quiero comentar en ejercicios específicos, para pedir o dar ayuda.
+
+Como miembro de grupo, quiero ver una barra de progreso general del grupo, para motivar a que lleguemos juntos al 100%.
+
+📊 Progreso & Motivación
+
+Como estudiante, quiero ver mi porcentaje de avance por TP, para saber cuánto me falta.
+
+Como miembro de grupo, quiero comparar mi avance con mis compañeros, para ajustar mi ritmo al del grupo.
+
+Como miembro de grupo, quiero recibir notificaciones cuando alguien avance o me deje un comentario, para estar al tanto en tiempo real.
+
+Como miembro de grupo, quiero dar reacciones rápidas (👍, 🚀, 🆘), para interactuar sin necesidad de escribir mucho.
+
+💬 Colaboración extra (futuro)
+
+Como miembro de grupo, quiero tener un chat general del grupo, para coordinar fuera de los ejercicios.
+
+Como estudiante, quiero ver tips/resoluciones compartidas por otros, para aprender distintas formas de resolver los mismos problemas.
+
+Como miembro de grupo, quiero un ranking amistoso de quién resolvió más ejercicios, para gamificar el estudio y motivarnos.

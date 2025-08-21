@@ -1,0 +1,74 @@
+🔹 MVP Indispensable (Lo mínimo para probar)
+
+Objetivo: permitir a los estudiantes registrar TPs, marcar ejercicios y ver el progreso propio y del grupo.
+
+Autenticación básica
+
+Registro/login con email o Google.
+
+Perfil mínimo: nombre, materia/carrera.
+
+Gestión de TPs
+
+Crear TP con nombre, materia y fecha de entrega.
+
+Crear ejercicios dentro del TP.
+
+Marcar ejercicios como completados.
+
+Grupos de estudio
+
+Crear grupo por TP o materia.
+
+Invitar compañeros mediante link o código.
+
+Ver progreso individual dentro del grupo.
+
+Barra de progreso global del grupo.
+
+Progreso & visualización
+
+% de avance de cada TP (individual y grupal).
+
+Listado de ejercicios completados y pendientes.
+
+🔹 Funcionalidades que pueden esperar
+
+Objetivo: agregar colaboración, motivación y extras para enriquecer la experiencia.
+
+Colaboración extra
+
+Comentarios en ejercicios.
+
+Chat de grupo interno.
+
+Compartir tips o resoluciones.
+
+Gamificación / motivación
+
+Ranking de progreso entre compañeros.
+
+Reacciones rápidas (👍, 🚀, 🆘).
+
+Notificaciones de avance o comentarios.
+
+Extras y mejoras
+
+Adjuntar archivos o links a ejercicios.
+
+Estadísticas semanales de progreso.
+
+Algoritmo de recomendaciones (quién avanzar con quién).
+
+Integración con Google Drive/Notion.
+
+Modo offline.
+
+💡 Recomendación:
+Para el MVP inicial, enfocate solo en lo indispensable. Esto te permite:
+
+Probar la app con compañeros rápidamente.
+
+Validar si el concepto de trabajo en grupo + seguimiento de TP realmente motiva a los estudiantes.
+
+Después iterar e ir agregando funcionalidades del bloque “puede esperar” según feedback real.
