@@ -72,9 +72,9 @@ export default function DesktopLayout({ children }: DesktopLayoutProps) {
         }}>
           {/* Navigation Menu */}
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {menuItems.map((item) => (
+            {menuItems.map((item, index) => (
               <Button
-                key={item.text}
+                key={typeof item.text === 'string' ? item.text : `menu-item-${index}`}
                 color="inherit"
                 startIcon={item.icon}
                 onClick={() => navigate(item.path)}

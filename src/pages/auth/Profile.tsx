@@ -11,8 +11,10 @@ import {
   ListItemText,
   Divider,
   Badge,
-  IconButton,
   Chip,
+  TextField,
+  Button,
+  IconButton,
 } from '@mui/material'
 import {
   Person as PersonIcon,
@@ -21,13 +23,22 @@ import {
   Group as GroupIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  ArrowBack as ArrowBackIcon,
   Circle as CircleIcon,
   School as SchoolIcon,
+  Save as SaveIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Check as CheckIcon,
 } from '@mui/icons-material'
 
 export default function Profile() {
-  const [showNotifications, setShowNotifications] = useState(false)
+  const [activeSection, setActiveSection] = useState('') // '', 'notifications', 'settings', 'editing'
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedProfile, setEditedProfile] = useState({
+    name: '',
+    email: '',
+    career: '',
+    avatar: ''
+  })
 
   // Mock data - esto vendrá de los contexts más adelante
   const stats = {
@@ -89,42 +100,331 @@ export default function Profile() {
     },
   ]
 
-  const unreadCount = notifications.filter(n => !n.read).length
+  const [notificationsState, setNotificationsState] = useState(notifications)
+
+  const unreadCount = notificationsState.filter(n => !n.read).length
+
+  const handleEditProfile = () => {
+    if (isEditing) {
+      // Cancelar edición - volver al estado normal
+      setIsEditing(false)
+      setEditedProfile({
+        name: '',
+        email: '',
+        career: '',
+        avatar: ''
+      })
+      setActiveSection('')
+    } else {
+      // Iniciar edición - marcar como editando
+      setIsEditing(true)
+      setEditedProfile({
+        name: profile.name,
+        email: profile.email,
+        career: profile.career,
+        avatar: profile.avatar
+      })
+      setActiveSection('editing')
+    }
+  }
+
+  const handleSaveProfile = () => {
+    // TODO: Guardar cambios en el backend
+    console.log('Guardando cambios:', editedProfile)
+    setIsEditing(false)
+    setActiveSection('')
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleMenuClick = (section: string) => {
+    if (activeSection === section) {
+      // Si ya está seleccionada, deseleccionar (volver al estado normal)
+      setActiveSection('')
+    } else {
+      // Si no está seleccionada, seleccionarla
+      setActiveSection(section)
+    }
+    if (isEditing && section !== 'editing') {
+      setIsEditing(false)
+    }
+  }
+
+  const handleMarkAsRead = (notificationId: number) => {
+    setNotificationsState(prev => 
+      prev.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, read: true }
+          : notification
+      )
+    )
+  }
 
   const menuItems = [
-    { icon: <PersonIcon />, text: 'Editar Perfil', action: () => console.log('Edit profile') },
     { 
+      id: isEditing ? 'editing' : 'edit-profile',
+      icon: <PersonIcon />, 
+      text: 'Editar Perfil', 
+      action: handleEditProfile 
+    },
+    { 
+      id: 'notifications',
       icon: (
         <Badge badgeContent={unreadCount} color="warning">
           <NotificationsIcon />
         </Badge>
       ), 
       text: 'Notificaciones', 
-      action: () => setShowNotifications(!showNotifications) 
+      action: () => handleMenuClick('notifications')
     },
-    { icon: <SettingsIcon />, text: 'Configuración', action: () => console.log('Settings') },
-    { icon: <LogoutIcon />, text: 'Cerrar Sesión', action: () => console.log('Logout') },
+    { 
+      id: 'settings',
+      icon: <SettingsIcon />, 
+      text: 'Configuración', 
+      action: () => handleMenuClick('settings')
+    },
+    { 
+      id: 'logout',
+      icon: <LogoutIcon />, 
+      text: 'Cerrar Sesión', 
+      action: () => console.log('Logout')
+    },
   ]
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string, isRead: boolean = true) => {
+    const color = isRead ? getNotificationColor(type) : 'warning';
     switch (type) {
-      case 'assignment': return <AssignmentIcon color="primary" />
-      case 'group': return <GroupIcon color="secondary" />
-      case 'deadline': return <CircleIcon color="warning" />
-      case 'comment': return <PersonIcon color="info" />
-      case 'success': return <CircleIcon color="success" />
-      default: return <CircleIcon />
+      case 'assignment': return <AssignmentIcon color={color as any} />  // Azul para TPs
+      case 'group': return <GroupIcon color={color as any} />            // Verde para grupos
+      case 'deadline': return <AssignmentIcon color={color as any} />    // TP para fechas límite
+      case 'comment': return <GroupIcon color={color as any} />          // Grupo para comentarios
+      case 'success': return <AssignmentIcon color={color as any} />     // TP para éxito
+      default: return <AssignmentIcon color={color as any} />
     }
   }
 
   const getNotificationColor = (type: string) => {
     switch (type) {
-      case 'assignment': return 'primary'
-      case 'group': return 'secondary'
-      case 'deadline': return 'warning'
-      case 'comment': return 'info'
-      case 'success': return 'success'
-      default: return 'default'
+      case 'assignment': return 'primary'  // Azul para TPs
+      case 'group': return 'success'       // Verde para grupos
+      case 'deadline': return 'primary'    // Azul para fechas límite (relacionado con TPs)
+      case 'comment': return 'success'     // Verde para comentarios (relacionado con grupos)
+      case 'success': return 'primary'     // Azul para éxito (relacionado con TPs)
+      default: return 'primary'
+    }
+  }
+
+  const renderProfileContent = () => {
+    if (isEditing) {
+      return (
+        // Modo edición
+        <Box sx={{ display: 'flex', gap: 3, height: '100%', justifyContent: 'center', alignItems: 'center', width: '100%', maxWidth: '600px' }}>
+          {/* Columna 1: Foto y botón */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flex: 1 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                sx={{
+                  width: 120,
+                  height: 120,
+                  fontSize: '3rem',
+                  bgcolor: 'primary.main',
+                }}
+              >
+                {editedProfile.avatar}
+              </Avatar>
+              <IconButton
+                sx={{
+                  position: 'absolute',
+                  bottom: -5,
+                  right: -5,
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  width: 36,
+                  height: 36,
+                  '&:hover': {
+                    backgroundColor: 'primary.dark',
+                  },
+                }}
+                size="medium"
+              >
+                <PhotoCameraIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Box>
+            
+            <Button
+              variant="outlined"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveProfile}
+              size="medium"
+              sx={{ minWidth: '140px' }}
+            >
+              Confirmar Cambios
+            </Button>
+          </Box>
+          
+          {/* Columna 2: Campos */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, mt: 2, mr: 2.2 }}>
+            <TextField
+              label="Nombre"
+              value={editedProfile.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              size="small"
+              fullWidth
+            />
+            
+            <TextField
+              label="Email"
+              value={editedProfile.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              size="small"
+              type="email"
+              fullWidth
+            />
+            
+            <TextField
+              label="Carrera"
+              value={editedProfile.career}
+              onChange={(e) => handleInputChange('career', e.target.value)}
+              size="small"
+              fullWidth
+            />
+          </Box>
+        </Box>
+      )
+    } else {
+      return (
+        // Modo visualización
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'center' }}>
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              fontSize: '2rem',
+              mb: 1,
+              bgcolor: 'primary.main',
+            }}
+          >
+            {profile.avatar}
+          </Avatar>
+          <Typography variant="h5" component="div" gutterBottom>
+            {profile.name}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {profile.email}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            {profile.career}
+          </Typography>
+          <Chip 
+            label={`Miembro desde el ${new Date(new Date(profile.joinDate).getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('es-AR')}`}
+            size="small"
+            variant="outlined"
+            sx={{ mt: 1 }}
+          />
+        </Box>
+      )
+    }
+  }
+
+  const renderNotificationsContent = () => {
+    return (
+      <Box sx={{ p: 0, height: '280px' }}>
+        <Box sx={{ height: '100%', overflowY: 'auto' }}>
+          {notificationsState.map((notification) => (
+                          <ListItem
+                key={notification.id}
+                sx={{
+                  borderBottom: 1,
+                  borderColor: 'divider',
+                  backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                  '&:hover': { backgroundColor: 'action.selected' }
+                }}
+              >
+                              <ListItemIcon>
+                  {getNotificationIcon(notification.type, notification.read)}
+                </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: notification.read ? 'normal' : 'bold' }}>
+                      {notification.title}
+                    </Typography>
+                    {!notification.read && (
+                      <CircleIcon sx={{ fontSize: 8, color: 'warning.main' }} />
+                    )}
+                  </Box>
+                }
+                secondary={
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      {notification.message}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip
+                        label={`Hace ${notification.time}`}
+                        size="small"
+                        variant="outlined"
+                        color={!notification.read ? 'warning' : getNotificationColor(notification.type) as any}
+                        sx={{ fontSize: '0.7rem', height: 20 }}
+                      />
+                                             {!notification.read && (
+                         <IconButton
+                           size="small"
+                           onClick={() => handleMarkAsRead(notification.id)}
+                           sx={{
+                             backgroundColor: 'warning.main',
+                             color: 'white',
+                             width: 20,
+                             height: 20,
+                             '&:hover': {
+                               backgroundColor: 'warning.dark',
+                             },
+                           }}
+                         >
+                           <CheckIcon sx={{ fontSize: 12 }} />
+                         </IconButton>
+                       )}
+                    </Box>
+                  </Box>
+                }
+              />
+            </ListItem>
+          ))}
+        </Box>
+      </Box>
+    )
+  }
+
+  const renderSettingsContent = () => {
+    return (
+      <Box sx={{ p: 3, height: '280px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <SettingsIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Configuración
+        </Typography>
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          Aquí podrás configurar las preferencias de tu cuenta, notificaciones y privacidad.
+        </Typography>
+        <Button variant="outlined" sx={{ mt: 2 }}>
+          Próximamente
+        </Button>
+      </Box>
+    )
+  }
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'notifications':
+        return renderNotificationsContent()
+      case 'settings':
+        return renderSettingsContent()
+      default:
+        return renderProfileContent()
     }
   }
 
@@ -157,104 +457,28 @@ export default function Profile() {
         display: 'grid', 
         gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, 
         gridTemplateRows: { xs: 'auto auto auto', md: 'auto auto' },
-        gap: 2,
+        gap: { xs: 0.5, md: 2 },
         mb: 1
       }}>
         {/* Profile Card or Notifications */}
         <Card>
-          {showNotifications ? (
-            <CardContent sx={{ p: 0, height: '280px' }}>
-              {/* Notifications List */}
-              <Box sx={{ height: '100%', overflowY: 'auto' }}>
-                {notifications.map((notification) => (
-                  <ListItem 
-                    key={notification.id}
-                    sx={{ 
-                      borderBottom: 1, 
-                      borderColor: 'divider',
-                      backgroundColor: notification.read ? 'transparent' : 'action.hover',
-                      '&:hover': { backgroundColor: 'action.selected' }
-                    }}
-                  >
-                    <ListItemIcon>
-                      {getNotificationIcon(notification.type)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: notification.read ? 'normal' : 'bold' }}>
-                            {notification.title}
-                          </Typography>
-                          {!notification.read && (
-                            <CircleIcon sx={{ fontSize: 8, color: 'error.main' }} />
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                            {notification.message}
-                          </Typography>
-                          <Chip 
-                            label={`Hace ${notification.time}`}
-                            size="small"
-                            variant="outlined"
-                            color={getNotificationColor(notification.type) as any}
-                            sx={{ fontSize: '0.7rem', height: 20 }}
-                          />
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </Box>
-            </CardContent>
-          ) : (
-            <CardContent sx={{ textAlign: 'center', py: 3 }}>
-              <Avatar
-                sx={{
-                  width: 80,
-                  height: 80,
-                  fontSize: '2rem',
-                  mx: 'auto',
-                  mt: {xs: 0.5, md: 2},
-                  mb: 1,
-                  bgcolor: 'primary.main',
-                }}
-              >
-                {profile.avatar}
-              </Avatar>
-              <Typography variant="h5" component="div" gutterBottom>
-                {profile.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {profile.email}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {profile.career}
-              </Typography>
-              <Chip 
-                label={`Miembro desde el ${new Date(new Date(profile.joinDate).getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('es-AR')}`}
-                size="small"
-                variant="outlined"
-                sx={{ mt: 0 }}
-              />
-            </CardContent>
-          )}
+          <CardContent sx={{ textAlign: 'center', py: 3, height: '280px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {renderContent()}
+          </CardContent>
         </Card>
 
         {/* Menu Items */}
         <Card sx={{ display: { xs: 'none', md: 'block' } }}>
           <List>
             {menuItems.map((item, index) => (
-              <React.Fragment key={item.text}>
+              <React.Fragment key={item.id || `menu-item-${index}`}>
                 <ListItem 
                   onClick={item.action} 
                   sx={{ 
                     cursor: 'pointer', 
                     px: 3, 
                     py: 2,
-                    backgroundColor: item.text === 'Notificaciones' && showNotifications ? 'action.selected' : 'transparent',
+                    backgroundColor: activeSection === item.id ? 'action.selected' : 'transparent',
                     '&:hover': {
                       backgroundColor: 'action.hover',
                     },
@@ -269,11 +493,11 @@ export default function Profile() {
           </List>
         </Card>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Desktop only */}
         <Box sx={{ 
           gridColumn: { xs: '1', md: '1 / -1' },
-          display: 'grid', 
-          gridTemplateColumns: { xs: 'repeat(3, 1fr)', md: 'repeat(3, 1fr)' }, 
+          display: { xs: 'none', md: 'grid' }, 
+          gridTemplateColumns: 'repeat(3, 1fr)', 
           gap: 2
         }}>
         <Card sx={{ height: '180px' }}>
@@ -322,14 +546,14 @@ export default function Profile() {
       <Card sx={{ display: { xs: 'block', md: 'none' } }}>
         <List>
           {menuItems.map((item, index) => (
-            <React.Fragment key={item.text}>
+            <React.Fragment key={item.id || `mobile-menu-item-${index}`}>
               <ListItem 
                 onClick={item.action} 
                 sx={{ 
                   cursor: 'pointer', 
                   px: 3, 
                   py: 2,
-                  backgroundColor: item.text === 'Notificaciones' && showNotifications ? 'action.selected' : 'transparent',
+                  backgroundColor: activeSection === item.id ? 'action.selected' : 'transparent',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   },
@@ -344,6 +568,53 @@ export default function Profile() {
         </List>
       </Card>
 
+      {/* Stats Cards - Only visible on mobile */}
+      <Box sx={{ 
+        display: { xs: 'grid', md: 'none' }, 
+        gridTemplateColumns: 'repeat(3, 1fr)', 
+        gap: 2,
+        mt: 2
+      }}>
+        <Card sx={{ height: '140px' }}>
+          <CardContent sx={{ textAlign: 'center', py: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <AssignmentIcon color="primary" sx={{ fontSize: 24 }} />
+              <Typography variant="h6" component="div" sx={{ fontSize: '1rem' }}>
+                {stats.completedAssignments}/{stats.totalAssignments}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              TPs Completados
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ height: '140px' }}>
+          <CardContent sx={{ textAlign: 'center', py: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <GroupIcon color="secondary" sx={{ fontSize: 24 }} />
+              <Typography variant="h6" component="div" sx={{ fontSize: '1rem' }}>
+                {stats.activeGroups}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              Grupos Activos
+            </Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ height: '140px' }}>
+          <CardContent sx={{ textAlign: 'center', py: 2, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <SchoolIcon color="warning" sx={{ fontSize: 24 }} />
+              <Typography variant="h6" component="div" sx={{ fontSize: '1rem' }}>
+                {stats.totalProgress}%
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+              Rendimiento
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
 
     </Box>
   )
