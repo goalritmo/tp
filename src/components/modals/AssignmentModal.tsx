@@ -14,6 +14,7 @@ import {
   Divider,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemIcon,
 } from '@mui/material'
@@ -21,6 +22,11 @@ import {
   Close as CloseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Cancel as CancelIcon,
+  Save as SaveIcon,
+  Add as AddIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
   Assignment as AssignmentIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
@@ -45,7 +51,9 @@ interface AssignmentModalProps {
 }
 
 export default function AssignmentModal({ open, onClose, assignment }: AssignmentModalProps) {
-  const [showDelete, setShowDelete] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [expandedExercises, setExpandedExercises] = useState<Record<number, boolean>>({})
   
   if (!assignment) return null
 
@@ -65,17 +73,70 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     })
   }
 
-  // Mock exercises data
-  const exercises = [
-    { id: 1, name: 'Ejercicio 1: Análisis de complejidad', completed: true },
-    { id: 2, name: 'Ejercicio 2: Implementación de algoritmo', completed: true },
-    { id: 3, name: 'Ejercicio 3: Pruebas unitarias', completed: true },
-    { id: 4, name: 'Ejercicio 4: Documentación', completed: true },
-    { id: 5, name: 'Ejercicio 5: Presentación', completed: true },
+  // Mock exercises data organized by sections
+  const exerciseSections = [
+    {
+      id: 'teoria',
+      name: 'Parte Teórica',
+      exercises: [
+        { 
+          id: 1, 
+          name: 'Ejercicio 1: Análisis de complejidad', 
+          completed: true,
+          description: 'Analizar la complejidad temporal y espacial de los algoritmos de ordenamiento estudiados en clase. Incluir notación Big O y casos mejor, promedio y peor.'
+        },
+        { 
+          id: 2, 
+          name: 'Ejercicio 2: Comparación de algoritmos', 
+          completed: true,
+          description: 'Realizar una comparación detallada entre QuickSort, MergeSort y HeapSort, incluyendo ventajas y desventajas de cada uno.'
+        },
+      ]
+    },
+    {
+      id: 'practica',
+      name: 'Parte Práctica',
+      exercises: [
+        { 
+          id: 3, 
+          name: 'Ejercicio 3: Implementación de algoritmo', 
+          completed: true,
+          description: 'Implementar el algoritmo de QuickSort en el lenguaje de programación de su elección. El código debe estar bien documentado y seguir buenas prácticas.'
+        },
+        { 
+          id: 4, 
+          name: 'Ejercicio 4: Pruebas unitarias', 
+          completed: false,
+          description: 'Crear un conjunto completo de pruebas unitarias para validar la correctitud de la implementación. Incluir casos edge y casos de prueba exhaustivos.'
+        },
+      ]
+    },
+    {
+      id: 'entrega',
+      name: 'Entrega',
+      exercises: [
+        { 
+          id: 5, 
+          name: 'Ejercicio 5: Documentación', 
+          completed: false,
+          description: 'Preparar un informe técnico que incluya el análisis teórico, la implementación, los resultados de las pruebas y las conclusiones del trabajo.'
+        },
+      ]
+    }
   ]
 
   const handleEdit = () => {
-    setShowDelete(true)
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+  }
+
+  const handleSaveChanges = () => {
+    // TODO: Guardar cambios en el backend
+    console.log('Guardando cambios del TP:', assignment.id)
+    setIsEditing(false)
   }
 
   const handleDelete = () => {
@@ -85,8 +146,24 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   }
 
   const handleCloseModal = () => {
-    setShowDelete(false)
+    setIsEditing(false)
+    setExpandedSections({})
+    setExpandedExercises({})
     onClose()
+  }
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }))
+  }
+
+  const toggleExercise = (exerciseId: number) => {
+    setExpandedExercises(prev => ({
+      ...prev,
+      [exerciseId]: !prev[exerciseId]
+    }))
   }
 
   return (
@@ -126,9 +203,21 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       <DialogContent sx={{ pt: 2 }}>
         {/* Assignment Info */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-            {assignment.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+              {assignment.name}
+            </Typography>
+            {isEditing && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton size="small" color="primary">
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton size="small" color="error" onClick={handleDelete}>
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <SchoolIcon fontSize="small" color="action" />
@@ -170,58 +259,163 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Exercises List */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Ejercicios
-        </Typography>
+        {/* Exercises Sections */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            Ejercicios
+          </Typography>
+          {isEditing && (
+            <IconButton size="small" color="primary">
+              <AddIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
         
-        <List sx={{ pt: 0 }}>
-          {exercises.map((exercise) => (
-            <ListItem key={exercise.id} sx={{ px: 0, py: 1 }}>
+        {exerciseSections.map((section) => (
+          <Box key={section.id} sx={{ mb: 2 }}>
+            {/* Section Header */}
+            <ListItemButton 
+              onClick={() => toggleSection(section.id)}
+              sx={{ 
+                px: 0, 
+                py: 1, 
+                borderRadius: 1,
+                '&:hover': { backgroundColor: 'action.hover' }
+              }}
+            >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                {exercise.completed ? (
-                  <CheckCircleIcon color="success" fontSize="small" />
+                {expandedSections[section.id] ? (
+                  <ExpandLessIcon color="primary" />
                 ) : (
-                  <RadioButtonUncheckedIcon color="action" fontSize="small" />
+                  <ExpandMoreIcon color="primary" />
                 )}
               </ListItemIcon>
               <ListItemText 
-                primary={exercise.name}
+                primary={section.name}
                 sx={{
                   '& .MuiListItemText-primary': {
-                    textDecoration: exercise.completed ? 'line-through' : 'none',
-                    color: exercise.completed ? 'text.secondary' : 'text.primary',
+                    fontWeight: 'medium',
+                    color: 'primary.main'
                   }
                 }}
               />
-            </ListItem>
-          ))}
-        </List>
+              {isEditing && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton size="small" color="primary">
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" color="error">
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              )}
+            </ListItemButton>
+
+            {/* Section Exercises */}
+            {expandedSections[section.id] && (
+              <List sx={{ pl: 2, pt: 0 }}>
+                {section.exercises.map((exercise) => (
+                  <Box key={exercise.id}>
+                    <ListItem sx={{ px: 0, py: 1 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        {exercise.completed ? (
+                          <CheckCircleIcon color="success" fontSize="small" />
+                        ) : (
+                          <RadioButtonUncheckedIcon color="action" fontSize="small" />
+                        )}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={exercise.name}
+                        sx={{
+                          '& .MuiListItemText-primary': {
+                            textDecoration: exercise.completed ? 'line-through' : 'none',
+                            color: exercise.completed ? 'text.secondary' : 'text.primary',
+                          }
+                        }}
+                      />
+                      <IconButton 
+                        size="small" 
+                        onClick={() => toggleExercise(exercise.id)}
+                        sx={{ ml: 1 }}
+                      >
+                        {expandedExercises[exercise.id] ? (
+                          <ExpandLessIcon fontSize="small" />
+                        ) : (
+                          <ExpandMoreIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                      {isEditing && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                          <IconButton size="small" color="primary">
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton size="small" color="error">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </ListItem>
+                    
+                    {/* Exercise Description */}
+                    {expandedExercises[exercise.id] && (
+                      <Box sx={{ pl: 5, pr: 2, pb: 2 }}>
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ 
+                            fontStyle: 'italic',
+                            backgroundColor: 'action.hover',
+                            p: 2,
+                            borderRadius: 1,
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}
+                        >
+                          {exercise.description}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+              </List>
+            )}
+          </Box>
+        ))}
       </DialogContent>
 
       <Divider />
 
       {/* Actions */}
       <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-        {showDelete && (
+        {isEditing ? (
+          <>
+            <Button
+              variant="outlined"
+              startIcon={<CancelIcon />}
+              onClick={handleCancelEdit}
+              sx={{ textTransform: 'none' }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveChanges}
+              sx={{ textTransform: 'none' }}
+            >
+              Confirmar Cambios
+            </Button>
+          </>
+        ) : (
           <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={handleDelete}
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
             sx={{ textTransform: 'none' }}
           >
-            Eliminar
+            Editar
           </Button>
         )}
-        <Button
-          variant="contained"
-          startIcon={showDelete ? <CloseIcon /> : <EditIcon />}
-          onClick={showDelete ? () => setShowDelete(false) : handleEdit}
-          sx={{ textTransform: 'none' }}
-        >
-          {showDelete ? 'Cancelar' : 'Editar'}
-        </Button>
       </DialogActions>
     </Dialog>
   )
