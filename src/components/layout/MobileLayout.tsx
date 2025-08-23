@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, AppBar, Toolbar, Button } from '@mui/material'
+import { Box, AppBar, Toolbar, Button, Badge } from '@mui/material'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Assignment as AssignmentIcon,
@@ -15,10 +15,41 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
   const navigate = useNavigate()
   const location = useLocation()
 
+  // Mock notifications count - esto vendrá de un context más adelante
+  const unreadNotifications = 2
+
   const menuItems = [
     { text: 'TPs', icon: <AssignmentIcon />, path: '/' },
     { text: 'Grupos', icon: <GroupIcon />, path: '/groups' },
-    { text: 'Perfil', icon: <PersonIcon />, path: '/profile' },
+    { 
+      text: unreadNotifications > 0 ? (
+        <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          Perfil
+          <Badge 
+            badgeContent={unreadNotifications} 
+            color="warning"
+            sx={{
+              position: 'absolute',
+              top: -8,
+              right: -12,
+              '& .MuiBadge-badge': {
+                fontSize: '0.75rem',
+                minWidth: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }
+            }}
+          >
+            <Box sx={{ width: 0, height: 0 }} />
+          </Badge>
+        </Box>
+      ) : 'Perfil', 
+      icon: <PersonIcon />, 
+      path: '/profile' 
+    },
   ]
 
   return (
@@ -41,6 +72,8 @@ export default function MobileLayout({ children }: MobileLayoutProps) {
                   textTransform: 'none',
                   fontWeight: location.pathname === item.path ? 'bold' : 'normal',
                   backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  px: 2,
+                  py: 1,
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   },

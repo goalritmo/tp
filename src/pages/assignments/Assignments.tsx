@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -5,11 +6,19 @@ import {
   CardContent,
   LinearProgress,
   Chip,
+  Tooltip,
   IconButton,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
-import { Add as AddIcon, Edit as EditIcon } from '@mui/icons-material'
+import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
+import AssignmentModal from '../../components/modals/AssignmentModal'
 
 export default function Assignments() {
+  const [selectedAssignment, setSelectedAssignment] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   // Mock data - esto vendrá de los contexts más adelante
   const assignments = [
@@ -39,23 +48,47 @@ export default function Assignments() {
     return 'primary'
   }
 
+  const handleCardClick = (assignment: any) => {
+    setSelectedAssignment(assignment)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedAssignment(null)
+  }
+
   return (
     <Box className="container" sx={{ py: 2 }}>
       {/* Header */}
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        gutterBottom
-        sx={{ 
-          textAlign: 'center',
-          fontWeight: 'bold',
-          color: 'primary.main',
-          mb: 2,
-          fontSize: { xs: '2rem', md: '2.5rem' }
-        }}
-      >
-        Mis TPs
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 1, mb: 2 }}>
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          onClick={() => window.location.reload()}
+          sx={{ 
+            fontWeight: 'bold',
+            color: 'primary.main',
+            fontSize: { xs: '2rem', md: '2.5rem' },
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 0.8,
+            },
+            transition: 'opacity 0.2s ease',
+          }}
+        >
+          Mis TPs
+        </Typography>
+        <Tooltip 
+          title="Aquí puedes ver todos tus trabajos prácticos, su progreso y ejercicios completados. Haz click en cualquier TP para ver más detalles."
+          placement={isMobile ? "bottom" : "right"}
+          arrow
+        >
+          <IconButton size="small" sx={{ color: 'primary.main', mt: { xs: 0.8, md: 1.5 } }}>
+            <InfoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Assignments Grid */}
       <Box sx={{ 
@@ -69,7 +102,19 @@ export default function Assignments() {
         justifyContent: 'center'
       }}>
         {assignments.map((assignment) => (
-          <Card key={assignment.id} sx={{ height: '180px' }}>
+          <Card 
+            key={assignment.id} 
+            sx={{ 
+              height: '180px',
+              cursor: 'pointer',
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-2px)',
+                transition: 'all 0.2s ease-in-out',
+              },
+            }}
+            onClick={() => handleCardClick(assignment)}
+          >
             <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -92,9 +137,6 @@ export default function Assignments() {
                     />
                   </Box>
                 </Box>
-                <IconButton size="small" color="primary">
-                  <EditIcon fontSize="small" />
-                </IconButton>
               </Box>
 
               {/* Progress Bar */}
@@ -147,6 +189,13 @@ export default function Assignments() {
           </Box>
         </Card>
       </Box>
+
+      {/* Assignment Modal */}
+      <AssignmentModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        assignment={selectedAssignment}
+      />
     </Box>
   )
 }

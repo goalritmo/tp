@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   Typography,
@@ -10,17 +10,24 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Badge,
+  IconButton,
+  Chip,
 } from '@mui/material'
 import {
   Person as PersonIcon,
-  School as SchoolIcon,
+  Notifications as NotificationsIcon,
   Assignment as AssignmentIcon,
   Group as GroupIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
+  ArrowBack as ArrowBackIcon,
+  Circle as CircleIcon,
+  School as SchoolIcon,
 } from '@mui/icons-material'
 
 export default function Profile() {
+  const [showNotifications, setShowNotifications] = useState(false)
 
   // Mock data - esto vendrá de los contexts más adelante
   const stats = {
@@ -38,12 +45,88 @@ export default function Profile() {
             joinDate: '2025-08-21',
           }
 
+  // Mock notifications data
+  const notifications = [
+    {
+      id: 1,
+      title: 'Nuevo TP disponible',
+      message: 'Se ha publicado el TP 1 - Estructuras de Datos para Algoritmos I',
+      time: '2 horas',
+      type: 'assignment',
+      read: false,
+    },
+    {
+      id: 2,
+      title: 'Invitación a grupo',
+      message: 'Te han invitado al grupo "Los Recursivos" de Matemática Discreta I',
+      time: '5 horas',
+      type: 'group',
+      read: false,
+    },
+    {
+      id: 3,
+      title: 'Fecha límite próxima',
+      message: 'El TP 0 - Laboratorio vence en 2 días',
+      time: '1 día',
+      type: 'deadline',
+      read: true,
+    },
+    {
+      id: 4,
+      title: 'Comentario en grupo',
+      message: 'Juan comentó en "Los Algoritmos del Apocalipsis"',
+      time: '2 días',
+      type: 'comment',
+      read: true,
+    },
+    {
+      id: 5,
+      title: 'TP completado',
+      message: 'Has completado exitosamente el TP 0 - Práctico',
+      time: '3 días',
+      type: 'success',
+      read: true,
+    },
+  ]
+
+  const unreadCount = notifications.filter(n => !n.read).length
+
   const menuItems = [
     { icon: <PersonIcon />, text: 'Editar Perfil', action: () => console.log('Edit profile') },
-    { icon: <SchoolIcon />, text: 'Mis Materias', action: () => console.log('My subjects') },
+    { 
+      icon: (
+        <Badge badgeContent={unreadCount} color="warning">
+          <NotificationsIcon />
+        </Badge>
+      ), 
+      text: 'Notificaciones', 
+      action: () => setShowNotifications(!showNotifications) 
+    },
     { icon: <SettingsIcon />, text: 'Configuración', action: () => console.log('Settings') },
     { icon: <LogoutIcon />, text: 'Cerrar Sesión', action: () => console.log('Logout') },
   ]
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'assignment': return <AssignmentIcon color="primary" />
+      case 'group': return <GroupIcon color="secondary" />
+      case 'deadline': return <CircleIcon color="warning" />
+      case 'comment': return <PersonIcon color="info" />
+      case 'success': return <CircleIcon color="success" />
+      default: return <CircleIcon />
+    }
+  }
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'assignment': return 'primary'
+      case 'group': return 'secondary'
+      case 'deadline': return 'warning'
+      case 'comment': return 'info'
+      case 'success': return 'success'
+      default: return 'default'
+    }
+  }
 
   return (
     <Box className="container" sx={{ py: 2 }}>
@@ -52,12 +135,18 @@ export default function Profile() {
         variant="h3" 
         component="h1" 
         gutterBottom
+        onClick={() => window.location.reload()}
         sx={{ 
           textAlign: 'center',
           fontWeight: 'bold',
           color: 'primary.main',
           mb: 2,
-          fontSize: { xs: '2rem', md: '2.5rem' }
+          fontSize: { xs: '2rem', md: '2.5rem' },
+          cursor: 'pointer',
+          '&:hover': {
+            opacity: 0.8,
+          },
+          transition: 'opacity 0.2s ease',
         }}
       >
         Mi Perfil
@@ -71,31 +160,87 @@ export default function Profile() {
         gap: 2,
         mb: 1
       }}>
-        {/* Profile Card */}
+        {/* Profile Card or Notifications */}
         <Card>
-          <CardContent sx={{ textAlign: 'center', py: 3 }}>
-            <Avatar
-              sx={{
-                width: 80,
-                height: 80,
-                fontSize: '2rem',
-                mx: 'auto',
-                mb: 2,
-                bgcolor: 'primary.main',
-              }}
-            >
-              {profile.avatar}
-            </Avatar>
-            <Typography variant="h5" component="div" gutterBottom>
-              {profile.name}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {profile.email}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {profile.career}
-            </Typography>
-          </CardContent>
+          {showNotifications ? (
+            <CardContent sx={{ p: 0, height: '280px' }}>
+              {/* Notifications List */}
+              <Box sx={{ height: '100%', overflowY: 'auto' }}>
+                {notifications.map((notification) => (
+                  <ListItem 
+                    key={notification.id}
+                    sx={{ 
+                      borderBottom: 1, 
+                      borderColor: 'divider',
+                      backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                      '&:hover': { backgroundColor: 'action.selected' }
+                    }}
+                  >
+                    <ListItemIcon>
+                      {getNotificationIcon(notification.type)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: notification.read ? 'normal' : 'bold' }}>
+                            {notification.title}
+                          </Typography>
+                          {!notification.read && (
+                            <CircleIcon sx={{ fontSize: 8, color: 'error.main' }} />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            {notification.message}
+                          </Typography>
+                          <Chip 
+                            label={`Hace ${notification.time}`}
+                            size="small"
+                            variant="outlined"
+                            color={getNotificationColor(notification.type) as any}
+                            sx={{ fontSize: '0.7rem', height: 20 }}
+                          />
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </Box>
+            </CardContent>
+          ) : (
+            <CardContent sx={{ textAlign: 'center', py: 3 }}>
+              <Avatar
+                sx={{
+                  width: 80,
+                  height: 80,
+                  fontSize: '2rem',
+                  mx: 'auto',
+                  mt: {xs: 0.5, md: 2},
+                  mb: 1,
+                  bgcolor: 'primary.main',
+                }}
+              >
+                {profile.avatar}
+              </Avatar>
+              <Typography variant="h5" component="div" gutterBottom>
+                {profile.name}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {profile.email}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                {profile.career}
+              </Typography>
+              <Chip 
+                label={`Miembro desde el ${new Date(new Date(profile.joinDate).getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('es-AR')}`}
+                size="small"
+                variant="outlined"
+                sx={{ mt: 0 }}
+              />
+            </CardContent>
+          )}
         </Card>
 
         {/* Menu Items */}
@@ -103,7 +248,18 @@ export default function Profile() {
           <List>
             {menuItems.map((item, index) => (
               <React.Fragment key={item.text}>
-                <ListItem onClick={item.action} sx={{ cursor: 'pointer' }}>
+                <ListItem 
+                  onClick={item.action} 
+                  sx={{ 
+                    cursor: 'pointer', 
+                    px: 3, 
+                    py: 2,
+                    backgroundColor: item.text === 'Notificaciones' && showNotifications ? 'action.selected' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    },
+                  }}
+                >
                   <ListItemIcon>{item.icon}</ListItemIcon>
                   <ListItemText primary={item.text} />
                 </ListItem>
@@ -167,7 +323,18 @@ export default function Profile() {
         <List>
           {menuItems.map((item, index) => (
             <React.Fragment key={item.text}>
-              <ListItem onClick={item.action} sx={{ cursor: 'pointer' }}>
+              <ListItem 
+                onClick={item.action} 
+                sx={{ 
+                  cursor: 'pointer', 
+                  px: 3, 
+                  py: 2,
+                  backgroundColor: item.text === 'Notificaciones' && showNotifications ? 'action.selected' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
               </ListItem>

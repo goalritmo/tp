@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -6,10 +7,19 @@ import {
   Chip,
   Avatar,
   AvatarGroup,
+  Tooltip,
+  IconButton,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
-import { Add as AddIcon } from '@mui/icons-material'
+import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
+import GroupModal from '../../components/modals/GroupModal'
 
 export default function Groups() {
+  const [selectedGroup, setSelectedGroup] = useState<any>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const getProgressColor = (progress: number) => {
     if (progress === 100) return 'success'
@@ -49,23 +59,47 @@ export default function Groups() {
 
   ]
 
+  const handleCardClick = (group: any) => {
+    setSelectedGroup(group)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedGroup(null)
+  }
+
   return (
     <Box className="container" sx={{ py: 2 }}>
       {/* Header */}
-      <Typography 
-        variant="h3" 
-        component="h1" 
-        gutterBottom
-        sx={{ 
-          textAlign: 'center',
-          fontWeight: 'bold',
-          color: 'primary.main',
-          mb: 2,
-          fontSize: { xs: '2rem', md: '2.5rem' }
-        }}
-      >
-        Mis Grupos
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'center', gap: 1, mb: 2 }}>
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          onClick={() => window.location.reload()}
+          sx={{ 
+            fontWeight: 'bold',
+            color: 'primary.main',
+            fontSize: { xs: '2rem', md: '2.5rem' },
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 0.8,
+            },
+            transition: 'opacity 0.2s ease',
+          }}
+        >
+          Mis Grupos
+        </Typography>
+        <Tooltip 
+          title="Aquí puedes ver todos tus grupos de estudio, sus miembros y el progreso grupal. Haz click en cualquier grupo para ver más detalles."
+          placement={isMobile ? "bottom" : "right"}
+          arrow
+        >
+          <IconButton size="small" sx={{ color: 'primary.main', mt: { xs: 0.8, md: 1.5 } }}>
+            <InfoIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Groups Grid */}
       <Box sx={{ 
@@ -80,7 +114,19 @@ export default function Groups() {
         justifyContent: 'center'
       }}>
         {groups.map((group) => (
-          <Card key={group.id} sx={{ height: '180px' }}>
+          <Card 
+            key={group.id} 
+            sx={{ 
+              height: '180px',
+              cursor: 'pointer',
+              '&:hover': {
+                boxShadow: 4,
+                transform: 'translateY(-2px)',
+                transition: 'all 0.2s ease-in-out',
+              },
+            }}
+            onClick={() => handleCardClick(group)}
+          >
             <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -164,6 +210,13 @@ export default function Groups() {
           </Box>
         </Card>
       </Box>
+
+      {/* Group Modal */}
+      <GroupModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        group={selectedGroup}
+      />
     </Box>
   )
 }
