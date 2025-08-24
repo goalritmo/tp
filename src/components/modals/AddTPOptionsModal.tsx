@@ -52,7 +52,7 @@ export default function AddTPOptionsModal({
       maxWidth="sm"
       fullWidth
       disableEscapeKeyDown={false}
-      sx={{ zIndex: 9999 }}
+      sx={{ zIndex: 16000 }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

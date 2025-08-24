@@ -761,12 +761,13 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         )}
       </DialogActions>
 
-      {/* Code Modal */}
-      <Dialog 
-        open={showCodeModal} 
+            {/* Code Modal */}
+      <Dialog
+        open={showCodeModal}
         onClose={handleCloseCodeModal}
         maxWidth="sm"
         fullWidth
+        sx={{ zIndex: 16000 }}
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -919,6 +920,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         onClose={handleCancelDelete}
         maxWidth="sm"
         fullWidth
+        sx={{ zIndex: 16000 }}
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -976,6 +978,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         onClose={handleCloseMemberModal}
         maxWidth="sm"
         fullWidth
+        sx={{ zIndex: 16000 }}
         PaperProps={{
           sx: {
             borderRadius: 2,
