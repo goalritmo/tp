@@ -30,7 +30,6 @@ import {
   ContentCopy as ContentCopyIcon,
   CalendarToday as CalendarIcon,
   Save as SaveIcon,
-
 } from '@mui/icons-material'
 
 interface GroupMember {
@@ -66,6 +65,12 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [selectedMember, setSelectedMember] = useState<number | null>(null)
   const [showAddTPModal, setShowAddTPModal] = useState(false)
   const [showCreateTPModal, setShowCreateTPModal] = useState(false)
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [selectedTPForStatus, setSelectedTPForStatus] = useState<string | null>(null)
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedGroupName, setEditedGroupName] = useState('')
+  const [showRemoveMembersModal, setShowRemoveMembersModal] = useState(false)
   const [groupTPs, setGroupTPs] = useState([
     'TP 1 - Algoritmos de Ordenamiento',
     'TP 2 - Estructuras de Datos'
@@ -96,6 +101,65 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setIsEditing(false)
   }
 
+  const handleEditStatus = (tpName: string) => {
+    setSelectedTPForStatus(tpName)
+    setShowStatusModal(true)
+  }
+
+  const handleCloseStatusModal = () => {
+    setShowStatusModal(false)
+    setSelectedTPForStatus(null)
+    setSelectedStatus(null)
+  }
+
+  const handleSelectStatus = (status: string) => {
+    setSelectedStatus(status)
+  }
+
+  const handleConfirmStatusChange = () => {
+    if (selectedStatus) {
+      if (selectedStatus === 'Borrar') {
+        // TODO: Eliminar el TP del grupo en el backend
+        console.log('Eliminando TP del grupo:', selectedTPForStatus)
+        // Aquí se podría actualizar el estado local para remover el TP
+        setGroupTPs(prev => prev.filter(tp => tp !== selectedTPForStatus))
+      } else {
+        // TODO: Guardar el nuevo estado en el backend
+        console.log('Cambiando estado del TP:', selectedTPForStatus, 'a:', selectedStatus)
+      }
+      setShowStatusModal(false)
+      setSelectedTPForStatus(null)
+      setSelectedStatus(null)
+    }
+  }
+
+  const handleEditName = () => {
+    setEditedGroupName(group.name)
+    setIsEditingName(true)
+  }
+
+  const handleSaveName = () => {
+    // TODO: Guardar el nuevo nombre en el backend
+    console.log('Cambiando nombre del grupo a:', editedGroupName)
+    setIsEditingName(false)
+  }
+
+  const handleOpenRemoveMembersModal = () => {
+    setShowRemoveMembersModal(true)
+  }
+
+  const handleCloseRemoveMembersModal = () => {
+    setShowRemoveMembersModal(false)
+  }
+
+  const handleRemoveMember = (memberId: number) => {
+    // TODO: Eliminar miembro del grupo en el backend
+    console.log('Eliminando miembro del grupo:', memberId)
+    setShowRemoveMembersModal(false)
+  }
+
+
+
   const handleDelete = () => {
     setShowDelete(true)
   }
@@ -118,6 +182,12 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setShowMemberModal(false)
     setShowAddTPModal(false)
     setShowCreateTPModal(false)
+    setShowStatusModal(false)
+    setSelectedTPForStatus(null)
+    setSelectedStatus(null)
+    setIsEditingName(false)
+    setEditedGroupName('')
+    setShowRemoveMembersModal(false)
     setIsEditingCode(false)
     setGroupCode('GRP-ABC123')
     setSelectedMemberForModal(null)
@@ -346,10 +416,39 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         {/* Group Info */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
-              {group.name}
-            </Typography>
-            {isEditing && (
+            {isEditingName ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                <TextField
+                  value={editedGroupName}
+                  onChange={(e) => setEditedGroupName(e.target.value)}
+                  variant="standard"
+                  sx={{ 
+                    flex: 1,
+                    '& .MuiInputBase-input': {
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      padding: 0
+                    }
+                  }}
+                  autoFocus
+                />
+                <IconButton size="small" color="primary" onClick={handleSaveName}>
+                  <SaveIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            ) : (
+              <>
+                <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+                  {group.name}
+                </Typography>
+                {isEditing && (
+                  <IconButton size="small" color="primary" onClick={handleEditName}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </>
+            )}
+            {isEditing && !isEditingName && (
               <IconButton size="small" color="error" onClick={handleDelete}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
@@ -429,8 +528,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                       width: 32, 
                       height: 32, 
                       fontSize: '0.8rem',
-                      cursor: 'pointer',
-                      '&:hover': { opacity: 0.8 }
+                      cursor: isEditing ? 'default' : 'pointer',
+                      '&:hover': isEditing ? {} : { opacity: 0.8 }
                     }
                   }}
                 >
@@ -439,10 +538,10 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                       key={member.id}
                       sx={{ 
                         bgcolor: 'primary.main',
-                        cursor: 'pointer',
-                        '&:hover': { opacity: 0.8 }
+                        cursor: isEditing ? 'default' : 'pointer',
+                        '&:hover': isEditing ? {} : { opacity: 0.8 }
                       }}
-                      onClick={() => handleMemberClick(member)}
+                      onClick={isEditing ? undefined : () => handleMemberClick(member)}
                     >
                       {member.avatar}
                     </Avatar>
@@ -463,9 +562,9 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                         opacity: 0.9 
                       }
                     }}
-                    onClick={handleOpenCodeModal}
+                    onClick={isEditing ? handleOpenRemoveMembersModal : handleOpenCodeModal}
                   >
-                    <AddIcon fontSize="small" />
+                    {isEditing ? <EditIcon fontSize="small" /> : <AddIcon fontSize="small" />}
                   </Avatar>
                 </AvatarGroup>
               </Box>
@@ -556,13 +655,28 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
                   {tpName}
                 </Typography>
-              <Chip 
-                label="En progreso"
-                size="small"
-                color="warning"
-                sx={{ fontSize: '0.7rem' }}
-              />
-            </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {isEditing && (
+                    <IconButton 
+                      size="small" 
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleEditStatus(tpName)
+                      }}
+                      sx={{ p: 0.5 }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                  <Chip 
+                    label="En progreso"
+                    size="small"
+                    color="warning"
+                    sx={{ fontSize: '0.7rem' }}
+                  />
+                </Box>
+              </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
               <CalendarIcon fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
@@ -1132,6 +1246,270 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         onBack={handleCloseCreateTPModal}
         onSave={handleCreateTP}
       />
-    </Dialog>
+
+      {/* Status Change Modal */}
+      <Dialog
+        open={showStatusModal}
+        onClose={handleCloseStatusModal}
+        maxWidth="sm"
+        fullWidth
+        sx={{ zIndex: 16000 }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" component="span">
+            Cambiar estado del TP
+          </Typography>
+          <IconButton onClick={handleCloseStatusModal} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ pt: 2, pb: 1 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Selecciona el nuevo estado para <strong>"{selectedTPForStatus}"</strong>:
+          </Typography>
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Button
+              variant={selectedStatus === 'En progreso' ? 'contained' : 'outlined'}
+              onClick={() => handleSelectStatus('En progreso')}
+              sx={{ 
+                textTransform: 'none',
+                justifyContent: 'flex-start',
+                p: 2,
+                bgcolor: selectedStatus === 'En progreso' ? 'primary.main' : 'transparent',
+                color: selectedStatus === 'En progreso' ? 'white' : 'inherit',
+                '&:hover': {
+                  bgcolor: selectedStatus === 'En progreso' ? 'primary.dark' : 'action.hover'
+                }
+              }}
+            >
+              <Chip 
+                label="En progreso"
+                size="small"
+                color={selectedStatus === 'En progreso' ? 'default' : 'warning'}
+                sx={{ 
+                  mr: 2, 
+                  fontSize: '0.7rem',
+                  bgcolor: selectedStatus === 'En progreso' ? 'white' : undefined,
+                  color: selectedStatus === 'En progreso' ? 'primary.main' : undefined
+                }}
+              />
+              El TP está siendo trabajado activamente
+            </Button>
+            
+            <Button
+              variant={selectedStatus === 'Completado' ? 'contained' : 'outlined'}
+              onClick={() => handleSelectStatus('Completado')}
+              sx={{ 
+                textTransform: 'none',
+                justifyContent: 'flex-start',
+                p: 2,
+                bgcolor: selectedStatus === 'Completado' ? 'primary.main' : 'transparent',
+                color: selectedStatus === 'Completado' ? 'white' : 'inherit',
+                '&:hover': {
+                  bgcolor: selectedStatus === 'Completado' ? 'primary.dark' : 'action.hover'
+                }
+              }}
+            >
+              <Chip 
+                label="Completado"
+                size="small"
+                color={selectedStatus === 'Completado' ? 'default' : 'success'}
+                sx={{ 
+                  mr: 2, 
+                  fontSize: '0.7rem',
+                  bgcolor: selectedStatus === 'Completado' ? 'white' : undefined,
+                  color: selectedStatus === 'Completado' ? 'primary.main' : undefined
+                }}
+              />
+              El TP ha sido finalizado completamente
+            </Button>
+            
+            <Button
+              variant={selectedStatus === 'Pausado' ? 'contained' : 'outlined'}
+              onClick={() => handleSelectStatus('Pausado')}
+              sx={{ 
+                textTransform: 'none',
+                justifyContent: 'flex-start',
+                p: 2,
+                bgcolor: selectedStatus === 'Pausado' ? 'primary.main' : 'transparent',
+                color: selectedStatus === 'Pausado' ? 'white' : 'inherit',
+                '&:hover': {
+                  bgcolor: selectedStatus === 'Pausado' ? 'primary.dark' : 'action.hover'
+                }
+              }}
+            >
+              <Chip 
+                label="Pausado"
+                size="small"
+                color={selectedStatus === 'Pausado' ? 'default' : 'default'}
+                sx={{ 
+                  mr: 2, 
+                  fontSize: '0.7rem',
+                  bgcolor: selectedStatus === 'Pausado' ? 'white' : undefined,
+                  color: selectedStatus === 'Pausado' ? 'primary.main' : undefined
+                }}
+              />
+              El TP está temporalmente suspendido
+            </Button>
+
+            <Button
+              variant={selectedStatus === 'Borrar' ? 'contained' : 'outlined'}
+              onClick={() => handleSelectStatus('Borrar')}
+              sx={{ 
+                textTransform: 'none',
+                justifyContent: 'flex-start',
+                p: 2,
+                bgcolor: selectedStatus === 'Borrar' ? 'error.main' : 'transparent',
+                color: selectedStatus === 'Borrar' ? 'white' : 'inherit',
+                borderColor: selectedStatus === 'Borrar' ? 'error.main' : undefined,
+                '&:hover': {
+                  bgcolor: selectedStatus === 'Borrar' ? 'error.dark' : 'action.hover'
+                }
+              }}
+            >
+              <Chip 
+                label="Borrar"
+                size="small"
+                color={selectedStatus === 'Borrar' ? 'default' : 'error'}
+                sx={{ 
+                  mr: 2, 
+                  fontSize: '0.7rem',
+                  bgcolor: selectedStatus === 'Borrar' ? 'white' : undefined,
+                  color: selectedStatus === 'Borrar' ? 'error.main' : undefined
+                }}
+              />
+              Eliminar el TP del grupo permanentemente
+            </Button>
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={handleCloseStatusModal}
+            sx={{ textTransform: 'none' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmStatusChange}
+            disabled={!selectedStatus}
+            sx={{ textTransform: 'none' }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+              </Dialog>
+
+        {/* Remove Members Modal */}
+        <Dialog
+          open={showRemoveMembersModal}
+          onClose={handleCloseRemoveMembersModal}
+          maxWidth="sm"
+          fullWidth
+          sx={{ zIndex: 16000 }}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+            }
+          }}
+        >
+          <DialogTitle sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1
+          }}>
+            <Typography variant="h6" component="span">
+              Eliminar miembros del grupo
+            </Typography>
+            <IconButton onClick={handleCloseRemoveMembersModal} size="small">
+              <CloseIcon />
+            </IconButton>
+          </DialogTitle>
+
+          <Divider />
+
+          <DialogContent sx={{ pt: 2, pb: 1 }}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Selecciona los miembros que quieres eliminar del grupo:
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {group.members.map((member) => (
+                <Box
+                  key={member.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    '&:hover': {
+                      bgcolor: 'action.hover'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar
+                      sx={{ 
+                        bgcolor: 'primary.main',
+                        width: 32,
+                        height: 32,
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {member.avatar}
+                    </Avatar>
+                    <Typography variant="body1">
+                      {member.name}
+                    </Typography>
+                  </Box>
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveMember(member.id)}
+                    sx={{ 
+                      p: 0.5,
+                      color: 'text.secondary',
+                      '&:hover': {
+                        color: 'error.main'
+                      }
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={handleCloseRemoveMembersModal}
+              sx={{ textTransform: 'none' }}
+            >
+              Cancelar
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Dialog>
   )
 }

@@ -68,13 +68,9 @@ export default function AddTPOptionsModal({
 
       <DialogContent sx={{ pt: 2, pb: 3 }}>
         <Box sx={{ mt: 2 }}>
-          {isAdmin && onCreateNew ? (
+          {isAdmin && onCreateNew && (
             <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
               ¿Qué te gustaría hacer?
-            </Typography>
-          ) : (
-            <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
-              Agregar TP existente
             </Typography>
           )}
 
