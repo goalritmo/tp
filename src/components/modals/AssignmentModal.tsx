@@ -41,6 +41,7 @@ import {
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
   CalendarToday as CalendarIcon,
   School as SchoolIcon,
+  History as HistoryIcon,
 } from '@mui/icons-material'
 
 interface Assignment {
@@ -79,6 +80,9 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [editMode, setEditMode] = useState<'exercise' | 'notes'>('exercise')
   const [showAddSectionModal, setShowAddSectionModal] = useState(false)
   const [newSectionName, setNewSectionName] = useState('')
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [selectedNoteHistory, setSelectedNoteHistory] = useState<any[]>([])
+  const [notes, setNotes] = useState<{ title: string; content: string }[]>([{ title: '', content: '' }])
   
   // Mock exercises data organized by sections
   const [exerciseSections, setExerciseSections] = useState<{
@@ -201,6 +205,13 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
 
   const handleEdit = () => {
     setIsEditing(true)
+    // Expandir todas las secciones al entrar en modo edición
+    const allSections = exerciseSections.map(section => section.id)
+    
+    setExpandedSections(
+      allSections.reduce((acc, sectionId) => ({ ...acc, [sectionId]: true }), {})
+    )
+    setExpandedExercises({})
   }
 
   const handleCancelEdit = () => {
@@ -339,6 +350,49 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       setExerciseSections(prev => [...prev, newSection])
       handleCloseAddSection()
     }
+  }
+
+  const handleOpenHistory = (noteId: number) => {
+    // Mock historial de cambios para la nota
+    const mockHistory = [
+      {
+        id: 1,
+        text: 'Nota original creada',
+        timestamp: new Date(Date.now() - 86400000).toISOString(), // 1 día atrás
+        type: 'created'
+      },
+      {
+        id: 2,
+        text: 'Nota modificada por primera vez',
+        timestamp: new Date(Date.now() - 43200000).toISOString(), // 12 horas atrás
+        type: 'modified'
+      },
+      {
+        id: 3,
+        text: 'Nota actualizada con nueva información',
+        timestamp: new Date(Date.now() - 3600000).toISOString(), // 1 hora atrás
+        type: 'modified'
+      }
+    ]
+    setSelectedNoteHistory(mockHistory)
+    setShowHistoryModal(true)
+  }
+
+  const handleCloseHistory = () => {
+    setShowHistoryModal(false)
+    setSelectedNoteHistory([])
+  }
+
+  const handleAddNote = () => {
+    setNotes(prev => [...prev, { title: '', content: '' }])
+  }
+
+  const handleUpdateNote = (index: number, field: 'title' | 'content', value: string) => {
+    setNotes(prev => prev.map((note, i) => i === index ? { ...note, [field]: value } : note))
+  }
+
+  const handleRemoveNote = (index: number) => {
+    setNotes(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSaveEdit = () => {
@@ -532,7 +586,14 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         </Box>
         
         {exerciseSections.map((section) => (
-          <Box key={section.id} sx={{ mb: 2 }}>
+          <Box 
+            key={section.id} 
+            sx={{ 
+              mb: 2,
+              borderRadius: 1,
+              '&:hover': { backgroundColor: 'action.hover' }
+            }}
+          >
             {/* Section Header */}
             <Box 
               onClick={() => toggleSection(section.id)}
@@ -542,8 +603,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                 px: 2, 
                 py: 1, 
                 borderRadius: 1,
-                cursor: 'pointer',
-                '&:hover': { backgroundColor: 'action.hover' }
+                cursor: 'pointer'
               }}
             >
               <Box sx={{ minWidth: 36, display: 'flex', alignItems: 'center' }}>
@@ -562,7 +622,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
               >
                 {section.name}
               </Typography>
-              {isEditing && (
+              {isEditing && !expandedSections[section.id] && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
                   <IconButton 
                     size="small" 
@@ -588,54 +648,61 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
               )}
             </Box>
 
-            {/* Section Exercises */}
+                        {/* Section Exercises */}
             {expandedSections[section.id] && (
               <List sx={{ pl: 2, pt: 0 }}>
                 {section.exercises.map((exercise) => (
                   <Box key={exercise.id}>
-                    <ListItem 
+                    <Box 
                       sx={{ 
-                        px: 0, 
-                        py: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 2, 
+                        py: 1, 
                         borderRadius: 1,
-                        '&:hover': { backgroundColor: 'action.hover' }
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'action.hover !important' }
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: 36 }}>
+                      <Box sx={{ minWidth: 36, display: 'flex', alignItems: 'center' }}>
                         {exercise.completed ? (
                           <CheckCircleIcon color="success" fontSize="small" />
                         ) : (
                           <RadioButtonUncheckedIcon color="action" fontSize="small" />
                         )}
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={exercise.name}
-                        sx={{
-                          '& .MuiListItemText-primary': {
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                        <Typography 
+                          variant="body1"
+                          sx={{
                             textDecoration: exercise.completed ? 'line-through' : 'none',
-                            color: exercise.completed ? 'text.secondary' : 'text.primary',
-                          }
-                        }}
-                      />
-                      <IconButton 
-                        size="small" 
-                        onClick={() => toggleExercise(exercise.id)}
-                        sx={{ ml: 1 }}
-                      >
-                        {expandedExercises[exercise.id] ? (
-                          <ExpandLessIcon fontSize="small" />
-                        ) : (
-                          <ExpandMoreIcon fontSize="small" />
+                            color: exercise.completed ? 'text.secondary' : 'text.primary'
+                          }}
+                        >
+                          {exercise.name}
+                        </Typography>
+                        {!isEditing && (
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={() => handleOpenNotes(exercise.id)}
+                            sx={{ ml: 0.5 }}
+                          >
+                            <NoteIcon fontSize="small" />
+                          </IconButton>
                         )}
-                      </IconButton>
+                      </Box>
                       {!isEditing && (
                         <IconButton 
                           size="small" 
-                          color="primary"
-                          onClick={() => handleOpenNotes(exercise.id)}
-                          sx={{ ml: 0.5 }}
+                          onClick={() => toggleExercise(exercise.id)}
+                          sx={{ ml: 1 }}
                         >
-                          <NoteIcon fontSize="small" />
+                          {expandedExercises[exercise.id] ? (
+                            <ExpandLessIcon fontSize="small" />
+                          ) : (
+                            <ExpandMoreIcon fontSize="small" />
+                          )}
                         </IconButton>
                       )}
                       {isEditing && (
@@ -662,7 +729,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                           </IconButton>
                         </Box>
                       )}
-                    </ListItem>
+                    </Box>
                     
                     {/* Exercise Description */}
                     {expandedExercises[exercise.id] && (
@@ -736,13 +803,32 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         disableEscapeKeyDown={false}
         sx={{ zIndex: 10001 }}
       >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <NoteIcon color="primary" />
-          <Typography variant="h6">
-            Notas del Ejercicio {selectedExercise}
-          </Typography>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <NoteIcon color="primary" />
+            <Typography variant="h6">
+              Notas del Ejercicio {selectedExercise}
+            </Typography>
+          </Box>
+          <IconButton 
+            size="small" 
+            color="primary"
+            onClick={() => {
+              setEditType('exercise')
+              setEditMode('notes')
+              setEditData({
+                id: selectedExercise || 0,
+                name: `Ejercicio ${selectedExercise}`,
+                description: ''
+              })
+              setShowEditModal(true)
+              setShowNotesDialog(false)
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ pt: 1, pb: 0 }}>
           <List>
             {selectedExercise && exerciseNotes[selectedExercise as keyof typeof exerciseNotes]?.map((note) => (
               <ListItem key={note.id} sx={{ px: 0, py: 1 }}>
@@ -758,6 +844,14 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                     }
                   }}
                 />
+                <IconButton 
+                  size="small" 
+                  color="primary"
+                  onClick={() => handleOpenHistory(note.id)}
+                  sx={{ mr: 0.5 }}
+                >
+                  <HistoryIcon fontSize="small" />
+                </IconButton>
                 {isEditing && (
                   <IconButton size="small" color="error">
                     <DeleteIcon fontSize="small" />
@@ -779,7 +873,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ pt: 1 }}>
           <Button onClick={handleCloseNotes} sx={{ textTransform: 'none' }}>
             Cerrar
           </Button>
@@ -880,25 +974,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
               }
             </Typography>
           </Box>
-          {editType === 'exercise' && (
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editMode === 'notes'}
-                  onChange={(e) => setEditMode(e.target.checked ? 'notes' : 'exercise')}
-                  size="small"
-                />
-              }
-              label="Ejercicio <> Notas"
-              labelPlacement="start"
-              sx={{ 
-                '& .MuiFormControlLabel-label': { 
-                  fontSize: '0.8rem',
-                  color: 'text.secondary'
-                }
-              }}
-            />
-          )}
+
         </DialogTitle>
         <DialogContent sx={{ pb: 3 }}>
           <Box sx={{ mt: 2 }}>
@@ -907,7 +983,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
               label="Nombre"
               value={editData?.name || ''}
               onChange={(e) => setEditData(prev => prev ? { ...prev, name: e.target.value } : null)}
-              sx={{ mb: 3 }}
+              sx={{ mb: 0 }}
             />
             
             {editType === 'exercise' && editMode === 'exercise' && (
@@ -993,25 +1069,45 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             )}
 
             {editType === 'exercise' && editMode === 'notes' && (
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <NoteIcon fontSize="small" />
-                  Notas del ejercicio
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Aquí puedes agregar notas específicas para este ejercicio.
-                </Typography>
-                <TextField
-                  fullWidth
-                  label="Nueva nota"
-                  multiline
-                  rows={3}
-                  placeholder="Escribe una nota para este ejercicio..."
-                />
+              <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                {notes.map((note, index) => (
+                  <Box key={index} sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      label={`Título de la nota ${index + 1}`}
+                      placeholder="Título de la nota..."
+                      value={note.title}
+                      onChange={(e) => handleUpdateNote(index, 'title', e.target.value)}
+                      sx={{ mb: 1 }}
+                    />
+                    <TextField
+                      fullWidth
+                      label={`Contenido de la nota ${index + 1}`}
+                      multiline
+                      rows={3}
+                      placeholder="Escribe una nota para este ejercicio..."
+                      value={note.content}
+                      onChange={(e) => handleUpdateNote(index, 'content', e.target.value)}
+                      sx={{ mb: 1 }}
+                    />
+                    {notes.length > 1 && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        onClick={() => handleRemoveNote(index)}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        Eliminar Nota
+                      </Button>
+                    )}
+                  </Box>
+                ))}
                 <Button
                   variant="outlined"
                   startIcon={<AddIcon />}
-                  sx={{ mt: 2, textTransform: 'none' }}
+                  onClick={handleAddNote}
+                  sx={{ mt: 1, textTransform: 'none' }}
                 >
                   Agregar Nota
                 </Button>
@@ -1078,6 +1174,56 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             sx={{ textTransform: 'none' }}
           >
             Agregar Sección
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* History Modal */}
+      <Dialog 
+        open={showHistoryModal} 
+        onClose={handleCloseHistory}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10004 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 3, pb: 0 }}>
+          <HistoryIcon color="primary" />
+          <Typography variant="h6">
+            Historial de Cambios
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1, pb: 0 }}>
+          <List>
+            {selectedNoteHistory.map((change) => (
+              <ListItem key={change.id} sx={{ px: 0, py: 1 }}>
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  {change.type === 'created' ? (
+                    <AddIcon color="action" fontSize="small" />
+                  ) : (
+                    <EditIcon color="action" fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText
+                  primary={change.text}
+                  secondary={new Date(change.timestamp).toLocaleString('es-ES')}
+                  sx={{
+                    '& .MuiListItemText-primary': {
+                      fontSize: '0.9rem',
+                    },
+                    '& .MuiListItemText-secondary': {
+                      fontSize: '0.7rem',
+                    }
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions sx={{ pt: 1 }}>
+          <Button onClick={handleCloseHistory} sx={{ textTransform: 'none' }}>
+            Volver
           </Button>
         </DialogActions>
       </Dialog>
