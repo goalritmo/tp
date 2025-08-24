@@ -12,7 +12,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
+import { Add as AddIcon, Info as InfoIcon, Lock as LockIcon } from '@mui/icons-material'
 import GroupModal from '../../components/modals/GroupModal'
 import AddGroupOptionsModal from '../../components/modals/AddGroupOptionsModal'
 import AddGroupModal from '../../components/modals/AddGroupModal'
@@ -191,7 +191,18 @@ export default function Groups() {
                       size="small"
                       color="secondary"
                       variant="outlined"
-                      sx={{ fontSize: '0.7rem', height: 20 }}
+                      icon={<LockIcon sx={{ fontSize: '0.8rem' }} />}
+                      sx={{ 
+                        fontSize: '0.7rem', 
+                        height: 20,
+                        '& .MuiChip-icon': {
+                          fontSize: '0.8rem !important',
+                          paddingLeft: '4px'
+                        },
+                        '& .MuiChip-label': {
+                          paddingLeft: '6px'
+                        }
+                      }}
                     />
                   </Box>
                   

@@ -112,6 +112,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [selectedGroups, setSelectedGroups] = useState<Set<number>>(new Set([1, 2]))
   const [originalNoteData, setOriginalNoteData] = useState<{ name: string; description: string } | null>(null)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+  const [showDeleteTPModal, setShowDeleteTPModal] = useState(false)
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
   const [showAddLinkModal, setShowAddLinkModal] = useState(false)
   const [newLinkData, setNewLinkData] = useState<{ text: string; url: string }>({ text: '', url: '' })
@@ -314,9 +315,18 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   }
 
   const handleDelete = () => {
+    setShowDeleteTPModal(true)
+  }
+
+  const handleConfirmDeleteTP = () => {
     // TODO: Implementar eliminación
     console.log('Eliminar TP:', assignment.id)
+    setShowDeleteTPModal(false)
     onClose()
+  }
+
+  const handleCancelDeleteTP = () => {
+    setShowDeleteTPModal(false)
   }
 
   const handleCloseModal = () => {
@@ -1976,6 +1986,42 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             sx={{ textTransform: 'none' }}
           >
             Eliminar Archivo
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete TP Confirmation Modal */}
+      <Dialog 
+        open={showDeleteTPModal} 
+        onClose={handleCancelDeleteTP}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10008 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 3 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6">
+            Eliminar TP
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 0 }}>
+          <Typography>
+            ¿Estás seguro de que quieres eliminar el TP <strong>"{assignment.name}"</strong>? Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 1, pr: 3, pb: 3 }}>
+          <Button onClick={handleCancelDeleteTP} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleConfirmDeleteTP}
+            sx={{ textTransform: 'none' }}
+          >
+            Eliminar TP
           </Button>
         </DialogActions>
       </Dialog>

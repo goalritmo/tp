@@ -25,6 +25,8 @@ import {
   Lock as LockIcon,
   Add as AddIcon,
   ContentCopy as ContentCopyIcon,
+  CalendarToday as CalendarIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material'
 
 interface GroupMember {
@@ -51,6 +53,7 @@ interface GroupModalProps {
 }
 
 export default function GroupModal({ open, onClose, group }: GroupModalProps) {
+  const [isEditing, setIsEditing] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showCodeModal, setShowCodeModal] = useState(false)
   
@@ -63,16 +66,36 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   }
 
   const handleEdit = () => {
-    setShowDelete(true)
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+  }
+
+  const handleSaveChanges = () => {
+    // TODO: Guardar cambios en el backend
+    console.log('Guardando cambios del grupo:', group.id)
+    setIsEditing(false)
   }
 
   const handleDelete = () => {
+    setShowDelete(true)
+  }
+
+  const handleConfirmDelete = () => {
     // TODO: Implementar eliminación
     console.log('Eliminar grupo:', group.id)
+    setShowDelete(false)
     onClose()
   }
 
+  const handleCancelDelete = () => {
+    setShowDelete(false)
+  }
+
   const handleCloseModal = () => {
+    setIsEditing(false)
     setShowDelete(false)
     setShowCodeModal(false)
     onClose()
@@ -127,9 +150,16 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       <DialogContent sx={{ pt: 2 }}>
         {/* Group Info */}
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
-            {group.name}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+              {group.name}
+            </Typography>
+            {isEditing && (
+              <IconButton size="small" color="error" onClick={handleDelete}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <SchoolIcon fontSize="small" color="action" />
@@ -139,22 +169,18 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             <Chip 
               label="Privado"
               size="small"
-              color="default"
+              color="success"
               variant="outlined"
               icon={<LockIcon sx={{ fontSize: '0.9rem' }} />}
               sx={{ 
                 fontSize: '0.7rem', 
                 height: 20,
-                borderColor: 'text.primary',
-                color: 'text.primary',
                 '& .MuiChip-icon': {
                   fontSize: '0.9rem !important',
-                  paddingLeft: '4px',
-                  color: 'text.primary'
+                  paddingLeft: '4px'
                 },
                 '& .MuiChip-label': {
-                  paddingLeft: '6px',
-                  color: 'text.primary'
+                  paddingLeft: '6px'
                 }
               }}
             />
@@ -258,7 +284,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
           TPs activos
         </Typography>
         
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
           {/* Mock active assignments */}
           <Box sx={{ 
             p: 2, 
@@ -281,9 +307,12 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                 sx={{ fontSize: '0.7rem' }}
               />
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Fecha límite: 15 de Marzo, 2025
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+              <CalendarIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Fecha límite: 15 de Marzo, 2025
+              </Typography>
+            </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ flex: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
@@ -328,9 +357,12 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                 sx={{ fontSize: '0.7rem' }}
               />
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Fecha límite: 22 de Marzo, 2025
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
+              <CalendarIcon fontSize="small" color="action" />
+              <Typography variant="body2" color="text.secondary">
+                Fecha límite: 22 de Marzo, 2025
+              </Typography>
+            </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ flex: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
@@ -359,26 +391,35 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       <Divider />
 
       {/* Actions */}
-      <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
-        {showDelete && (
+      <DialogActions sx={{ px: 4, py: 3, gap: 1, justifyContent: 'center' }}>
+        {isEditing ? (
+          <>
+            <Button
+              variant="outlined"
+              onClick={handleCancelEdit}
+              sx={{ textTransform: 'none' }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleSaveChanges}
+              sx={{ textTransform: 'none' }}
+            >
+              Guardar cambios
+            </Button>
+          </>
+        ) : (
           <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={handleDelete}
+            variant="contained"
+            startIcon={<EditIcon />}
+            onClick={handleEdit}
             sx={{ textTransform: 'none' }}
           >
-            Eliminar grupo
+            Editar
           </Button>
         )}
-        <Button
-          variant="contained"
-          startIcon={showDelete ? <CloseIcon /> : <EditIcon />}
-          onClick={showDelete ? () => setShowDelete(false) : handleEdit}
-          sx={{ textTransform: 'none' }}
-        >
-          {showDelete ? 'Cancelar' : 'Editar'}
-        </Button>
       </DialogActions>
 
       {/* Code Modal */}
@@ -455,6 +496,63 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             sx={{ textTransform: 'none' }}
           >
             Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog 
+        open={showDelete} 
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" component="span">
+            Confirmar eliminación
+          </Typography>
+          <IconButton onClick={handleCancelDelete} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ pt: 2, pb: 1 }}>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            ¿Estás seguro de que quieres eliminar el grupo <strong>"{group.name}"</strong>?
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Esta acción no se puede deshacer. Se eliminarán todos los datos del grupo, incluyendo miembros, TPs y progreso.
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, pb: 3, gap: 1, justifyContent: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={handleCancelDelete}
+            sx={{ textTransform: 'none' }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={handleConfirmDelete}
+            sx={{ textTransform: 'none' }}
+          >
+            Eliminar grupo
           </Button>
         </DialogActions>
       </Dialog>
