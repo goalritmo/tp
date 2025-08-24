@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import type { Group } from '../../types/group'
+import { mockGroups } from '../../data/mockGroupData'
+import { PROGRESS_COLORS } from '../../constants/appConstants'
 import {
   Box,
   Typography,
@@ -18,7 +21,7 @@ import AddGroupOptionsModal from '../../components/modals/AddGroupOptionsModal'
 import AddGroupModal from '../../components/modals/AddGroupModal'
 
 export default function Groups() {
-  const [selectedGroup, setSelectedGroup] = useState<any>(null)
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -26,44 +29,15 @@ export default function Groups() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const getProgressColor = (progress: number) => {
-    if (progress === 100) return 'success'
-    if (progress >= 70) return 'warning'
+    if (progress === PROGRESS_COLORS.SUCCESS) return 'success'
+    if (progress >= PROGRESS_COLORS.WARNING) return 'warning'
     return 'primary'
   }
 
   // Mock data - esto vendrá de los contexts más adelante
-  const groups = [
-    {
-      id: 1,
-      name: 'Los Algoritmos del Apocalipsis',
-      subject: 'Algoritmos I',
-      members: [
-        { id: 1, name: 'Juan Pérez', avatar: 'JP' },
-        { id: 2, name: 'María García', avatar: 'MG' },
-        { id: 3, name: 'Carlos López', avatar: 'CL' },
-        { id: 4, name: 'Ana Martínez', avatar: 'AM' },
-      ],
-      totalMembers: 4,
-      activeAssignments: 2,
-      groupProgress: 75,
-    },
-    {
-      id: 2,
-      name: 'Algoritmos & Chill',
-      subject: 'Algoritmos I',
-      members: [
-        { id: 1, name: 'Juan Pérez', avatar: 'JP' },
-        { id: 5, name: 'Laura Silva', avatar: 'LS' },
-        { id: 6, name: 'Roberto Díaz', avatar: 'RD' },
-      ],
-      totalMembers: 3,
-      activeAssignments: 1,
-      groupProgress: 90,
-    },
+  const groups: Group[] = mockGroups
 
-  ]
-
-  const handleCardClick = (group: any) => {
+  const handleCardClick = (group: Group) => {
     setSelectedGroup(group)
     setIsModalOpen(true)
   }

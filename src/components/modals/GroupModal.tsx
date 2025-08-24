@@ -1,6 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AddTPOptionsModal from './AddTPOptionsModal'
 import AddAssignmentModal from './AddAssignmentModal'
+import type { Group, GroupMember } from '../../types/group'
+import { PROGRESS_COLORS, Z_INDEX } from '../../constants/appConstants'
+import { ASSIGNMENT_STATUS, ASSIGNMENT_DEFAULTS } from '../../constants/assignmentConstants'
+import { GROUP_DEFAULTS } from '../../constants/groupConstants'
+import { mockExerciseSections } from './assignment/mockData'
+import type { ExerciseSection } from './assignment/types'
 import {
   Dialog,
   DialogTitle,
@@ -32,23 +38,6 @@ import {
   Save as SaveIcon,
 } from '@mui/icons-material'
 
-interface GroupMember {
-  id: number
-  name: string
-  avatar: string
-  role?: string
-}
-
-interface Group {
-  id: number
-  name: string
-  subject: string
-  members: GroupMember[]
-  totalMembers: number
-  activeAssignments: number
-  groupProgress: number
-}
-
 interface GroupModalProps {
   open: boolean
   onClose: () => void
@@ -75,15 +64,24 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     'TP 1 - Algoritmos de Ordenamiento',
     'TP 2 - Estructuras de Datos'
   ])
-  const [groupCode, setGroupCode] = useState('GRP-ABC123')
+  const [groupCode, setGroupCode] = useState<string>(GROUP_DEFAULTS.CODE)
   const [isEditingCode, setIsEditingCode] = useState(false)
   const [isAdmin] = useState(false) // TODO: Esto debería venir del contexto de autenticación
   
+  useEffect(() => {
+    if (group) {
+      console.log('GroupModal - Miembros del grupo:', group.members)
+      console.log('GroupModal - GROUP_DEFAULTS.AVATAR_SIZE:', GROUP_DEFAULTS.AVATAR_SIZE)
+    }
+  }, [group?.members])
+
+
+
   if (!group) return null
 
   const getProgressColor = (progress: number) => {
-    if (progress === 100) return 'success'
-    if (progress >= 70) return 'warning'
+    if (progress === PROGRESS_COLORS.SUCCESS) return 'success'
+    if (progress >= PROGRESS_COLORS.WARNING) return 'warning'
     return 'primary'
   }
 
@@ -93,6 +91,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
 
   const handleCancelEdit = () => {
     setIsEditing(false)
+    setIsEditingName(false)
+    setEditedGroupName('')
   }
 
   const handleSaveChanges = () => {
@@ -143,6 +143,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     console.log('Cambiando nombre del grupo a:', editedGroupName)
     setIsEditingName(false)
   }
+
+
 
   const handleOpenRemoveMembersModal = () => {
     setShowRemoveMembersModal(true)
@@ -282,47 +284,36 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   }
 
   // Mock data for TP sections and exercises
-  const tpSections = {
-    'TP 1 - Algoritmos de Ordenamiento': [
+  const tpSections: Record<string, ExerciseSection[]> = {
+    'TP 1 - Algoritmos de Ordenamiento': mockExerciseSections,
+    'TP 2 - Estructuras de Datos': [
       {
         id: 'teoria',
         name: 'Parte Teórica',
         exercises: [
-          { id: 1, name: 'Ejercicio 1: Análisis de complejidad', completed: true },
-          { id: 2, name: 'Ejercicio 2: Comparación de algoritmos', completed: true },
+          { id: 1, name: 'Ejercicio 1: Conceptos básicos', completed: true, description: '', links: [], attachments: [] },
+          { id: 2, name: 'Ejercicio 2: Tipos de estructuras', completed: true, description: '', links: [], attachments: [] },
+          { id: 3, name: 'Ejercicio 3: Ventajas y desventajas', completed: true, description: '', links: [], attachments: [] },
         ]
       },
       {
         id: 'practica',
         name: 'Parte Práctica',
         exercises: [
-          { id: 3, name: 'Ejercicio 3: Implementación de algoritmo', completed: true },
-          { id: 4, name: 'Ejercicio 4: Pruebas y validación', completed: false },
-        ]
-      }
-    ],
-    'TP 2 - Estructuras de Datos': [
-      {
-        id: 'conceptos',
-        name: 'Conceptos Fundamentales',
-        exercises: [
-          { id: 1, name: 'Ejercicio 1: Definiciones y propiedades', completed: true },
-          { id: 2, name: 'Ejercicio 2: Análisis de casos de uso', completed: false },
-        ]
-      },
-      {
-        id: 'implementacion',
-        name: 'Implementación',
-        exercises: [
-          { id: 3, name: 'Ejercicio 3: Código base', completed: false },
-          { id: 4, name: 'Ejercicio 4: Optimizaciones', completed: false },
+          { id: 4, name: 'Ejercicio 4: Implementación de lista', completed: true, description: '', links: [], attachments: [] },
+          { id: 5, name: 'Ejercicio 5: Implementación de pila', completed: false, description: '', links: [], attachments: [] },
+          { id: 6, name: 'Ejercicio 6: Implementación de cola', completed: false, description: '', links: [], attachments: [] },
+          { id: 7, name: 'Ejercicio 7: Implementación de árbol', completed: false, description: '', links: [], attachments: [] },
+          { id: 8, name: 'Ejercicio 8: Implementación de grafo', completed: false, description: '', links: [], attachments: [] },
+          { id: 9, name: 'Ejercicio 9: Testing', completed: false, description: '', links: [], attachments: [] },
+          { id: 10, name: 'Ejercicio 10: Documentación', completed: false, description: '', links: [], attachments: [] },
         ]
       }
     ]
   }
 
   // Mock data for member progress
-  const memberProgress = {
+  const memberProgress: Record<string, Record<number, any>> = {
     'TP 1 - Algoritmos de Ordenamiento': {
       1: { // Juan Pérez
         progress: 100,
@@ -384,7 +375,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       onClose={handleCloseModal}
       maxWidth="md"
       fullWidth
-      sx={{ zIndex: 15000 }}
+                sx={{ zIndex: Z_INDEX.GROUP_MAIN }}
       PaperProps={{
         sx: {
           borderRadius: 2,
@@ -522,11 +513,11 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AvatarGroup 
-                  max={6} 
+                  max={GROUP_DEFAULTS.MAX_AVATAR_GROUP} 
                   sx={{ 
                     '& .MuiAvatar-root': { 
-                      width: 32, 
-                      height: 32, 
+                      width: GROUP_DEFAULTS.AVATAR_SIZE, 
+                      height: GROUP_DEFAULTS.AVATAR_SIZE, 
                       fontSize: '0.8rem',
                       cursor: isEditing ? 'default' : 'pointer',
                       '&:hover': isEditing ? {} : { opacity: 0.8 }
@@ -538,6 +529,9 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                       key={member.id}
                       sx={{ 
                         bgcolor: 'primary.main',
+                        width: GROUP_DEFAULTS.AVATAR_SIZE,
+                        height: GROUP_DEFAULTS.AVATAR_SIZE,
+                        fontSize: '0.8rem',
                         cursor: isEditing ? 'default' : 'pointer',
                         '&:hover': isEditing ? {} : { opacity: 0.8 }
                       }}
@@ -548,8 +542,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                   ))}
                   <Avatar
                     sx={{ 
-                      width: 32, 
-                      height: 32, 
+                      width: GROUP_DEFAULTS.AVATAR_SIZE, 
+                      height: GROUP_DEFAULTS.AVATAR_SIZE, 
                       fontSize: '0.8rem',
                       border: '2px solid',
                       borderColor: 'primary.main',
@@ -620,6 +614,19 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                     '& .MuiOutlinedInput-root': { 
                       height: 32,
                       fontSize: '0.9rem'
+                    },
+                    '& .MuiSelect-select': {
+                      zIndex: Z_INDEX.GROUP_SELECT_MENU
+                    },
+                    '& .MuiMenu-paper': {
+                      zIndex: Z_INDEX.GROUP_SELECT_MENU
+                    }
+                  }}
+                  SelectProps={{
+                    MenuProps: {
+                      sx: {
+                        zIndex: Z_INDEX.GROUP_SELECT_MENU
+                      }
                     }
                   }}
                 >
@@ -659,18 +666,19 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                   {isEditing && (
                     <IconButton 
                       size="small" 
-                      color="primary"
+                      color="warning"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleEditStatus(tpName)
                       }}
                       sx={{ p: 0.5 }}
+                      title="Cambiar estado del TP"
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
                   )}
                   <Chip 
-                    label="En progreso"
+                    label={ASSIGNMENT_STATUS.IN_PROGRESS}
                     size="small"
                     color="warning"
                     sx={{ fontSize: '0.7rem' }}
@@ -680,7 +688,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
               <CalendarIcon fontSize="small" color="action" />
               <Typography variant="body2" color="text.secondary">
-                Fecha límite: 15 de Marzo, 2025
+                Fecha límite: {ASSIGNMENT_DEFAULTS.DEADLINE}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -690,18 +698,18 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                     Progreso
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    75%
+                    {ASSIGNMENT_DEFAULTS.PROGRESS_PERCENTAGE}%
                   </Typography>
                 </Box>
                 <LinearProgress 
                   variant="determinate" 
-                  value={75}
+                  value={ASSIGNMENT_DEFAULTS.PROGRESS_PERCENTAGE}
                   color="warning"
                   sx={{ height: 6, borderRadius: 3 }}
                 />
               </Box>
               <Typography variant="caption" color="text.secondary">
-                6 de 8 ejercicios
+                {ASSIGNMENT_DEFAULTS.EXERCISES_COMPLETED}
               </Typography>
             </Box>
           </Box>
@@ -740,7 +748,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                   ) : (
         // TP Sections View
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {selectedTP && tpSections[selectedTP as keyof typeof tpSections]?.map((section) => (
+          {selectedTP && tpSections[selectedTP as keyof typeof tpSections]?.map((section: ExerciseSection) => (
             <Box key={section.id} sx={{ 
               border: '1px solid', 
               borderColor: 'divider', 
@@ -761,7 +769,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
               
                           {/* Exercises */}
             <Box sx={{ p: 0 }}>
-              {section.exercises.map((exercise) => {
+              {section.exercises.map((exercise: any) => {
                 // Check if member has completed this exercise
                 const memberData = selectedMember && selectedTP ? 
                   (memberProgress as any)[selectedTP]?.[selectedMember] : null;
@@ -1422,7 +1430,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
           onClose={handleCloseRemoveMembersModal}
           maxWidth="sm"
           fullWidth
-          sx={{ zIndex: 16000 }}
+          sx={{ zIndex: Z_INDEX.GROUP_NESTED }}
           PaperProps={{
             sx: {
               borderRadius: 2,

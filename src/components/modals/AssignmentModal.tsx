@@ -98,6 +98,8 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     { title: 'Nota importante', content: 'Esta es una nota de ejemplo con título y descripción.' }
   ])
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set([1, 2, 3]))
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedAssignmentName, setEditedAssignmentName] = useState('')
   const [sectionNotes] = useState<Record<string, { title: string; content: string }[]>>({
     'teoria': [{ title: 'Nota general', content: 'Esta sección incluye conceptos fundamentales de algoritmos.' }],
     'practica': [{ title: 'Implementación', content: 'Código debe estar bien documentado y probado.' }],
@@ -267,9 +269,22 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setExpandedExercises({})
   }
 
+  const handleEditName = () => {
+    setEditedAssignmentName(assignment.name)
+    setIsEditingName(true)
+  }
+
+  const handleSaveName = () => {
+    // TODO: Guardar el nuevo nombre en el backend
+    console.log('Cambiando nombre del TP a:', editedAssignmentName)
+    setIsEditingName(false)
+  }
+
   const handleCancelEdit = () => {
     setIsEditing(false)
     setIsMoveMode(false)
+    setIsEditingName(false)
+    setEditedAssignmentName('')
     
     // Restaurar el estado anterior de las secciones expandidas
     setExpandedSections(previousExpandedSections)
@@ -346,6 +361,8 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setIsMoveMode(false)
     setExpandedSections({})
     setExpandedExercises({})
+    setIsEditingName(false)
+    setEditedAssignmentName('')
     setShowDeleteTPModal(false)
     setShowGroupModal(false)
     setSelectedGroupForModal(null)
@@ -832,18 +849,42 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         {/* Assignment Info */}
         <Box sx={{ mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
-              {assignment.name}
-            </Typography>
-            {isEditing && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <IconButton size="small" color="primary">
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" color="error" onClick={handleDelete}>
-                  <DeleteIcon fontSize="small" />
+            {isEditingName ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                <TextField
+                  value={editedAssignmentName}
+                  onChange={(e) => setEditedAssignmentName(e.target.value)}
+                  variant="standard"
+                  sx={{ 
+                    flex: 1,
+                    '& .MuiInputBase-input': {
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      padding: 0
+                    }
+                  }}
+                  autoFocus
+                />
+                <IconButton size="small" color="primary" onClick={handleSaveName}>
+                  <SaveIcon fontSize="small" />
                 </IconButton>
               </Box>
+            ) : (
+              <>
+                <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+                  {assignment.name}
+                </Typography>
+                {isEditing && (
+                  <IconButton size="small" color="primary" onClick={handleEditName}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </>
+            )}
+            {isEditing && !isEditingName && (
+              <IconButton size="small" color="error" onClick={handleDelete}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
             )}
           </Box>
           
