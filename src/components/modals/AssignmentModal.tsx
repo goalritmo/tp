@@ -19,6 +19,9 @@ import {
   ListItemIcon,
   Avatar,
   AvatarGroup,
+  TextField,
+  Switch,
+  FormControlLabel,
 } from '@mui/material'
 import {
   Close as CloseIcon,
@@ -31,6 +34,9 @@ import {
   ExpandLess as ExpandLessIcon,
   Share as ShareIcon,
   Note as NoteIcon,
+  AttachFile as AttachFileIcon,
+  Link as LinkIcon,
+  Close as CloseAttachmentIcon,
   Assignment as AssignmentIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
@@ -61,6 +67,93 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
+  const [editingExercise, setEditingExercise] = useState<number | null>(null)
+  const [editingSection, setEditingSection] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editType, setEditType] = useState<'section' | 'exercise' | null>(null)
+  const [editData, setEditData] = useState<{
+    id: string | number
+    name: string
+    description?: string
+    links?: { text: string; url: string }[]
+    attachments?: string[]
+  } | null>(null)
+  const [editMode, setEditMode] = useState<'exercise' | 'notes'>('exercise')
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false)
+  const [newSectionName, setNewSectionName] = useState('')
+  
+  // Mock exercises data organized by sections
+  const [exerciseSections, setExerciseSections] = useState<{
+    id: string
+    name: string
+    exercises: {
+      id: number
+      name: string
+      completed: boolean
+      description: string
+      links: { text: string; url: string }[]
+      attachments: string[]
+    }[]
+  }[]>([
+    {
+      id: 'teoria',
+      name: 'Parte Teórica',
+      exercises: [
+        { 
+          id: 1, 
+          name: 'Ejercicio 1: Análisis de complejidad', 
+          completed: true,
+          description: 'Analizar la complejidad temporal y espacial de los algoritmos de ordenamiento estudiados en clase. Incluir notación Big O y casos mejor, promedio y peor.',
+          links: [],
+          attachments: ['algoritmos_complejidad.pdf']
+        },
+        { 
+          id: 2, 
+          name: 'Ejercicio 2: Comparación de algoritmos', 
+          completed: true,
+          description: 'Realizar una comparación detallada entre QuickSort, MergeSort y HeapSort, incluyendo ventajas y desventajas de cada uno.',
+          links: [],
+          attachments: []
+        },
+      ]
+    },
+    {
+      id: 'practica',
+      name: 'Parte Práctica',
+      exercises: [
+        { 
+          id: 3, 
+          name: 'Ejercicio 3: Implementación de algoritmo', 
+          completed: true,
+          description: 'Implementar el algoritmo de QuickSort en el lenguaje de programación de su elección. El código debe estar bien documentado y seguir buenas prácticas.',
+          links: [],
+          attachments: []
+        },
+        { 
+          id: 4, 
+          name: 'Ejercicio 4: Pruebas unitarias', 
+          completed: false,
+          description: 'Crear un conjunto completo de pruebas unitarias para validar la correctitud de la implementación. Incluir casos edge y casos de prueba exhaustivos.',
+          links: [],
+          attachments: []
+        },
+      ]
+    },
+    {
+      id: 'entrega',
+      name: 'Entrega',
+      exercises: [
+        { 
+          id: 5, 
+          name: 'Ejercicio 5: Documentación', 
+          completed: false,
+          description: 'Preparar un informe técnico que incluya el análisis teórico, la implementación, los resultados de las pruebas y las conclusiones del trabajo.',
+          links: [],
+          attachments: []
+        },
+      ]
+    }
+  ])
   
   if (!assignment) return null
 
@@ -79,58 +172,6 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       year: 'numeric'
     })
   }
-
-  // Mock exercises data organized by sections
-  const exerciseSections = [
-    {
-      id: 'teoria',
-      name: 'Parte Teórica',
-      exercises: [
-        { 
-          id: 1, 
-          name: 'Ejercicio 1: Análisis de complejidad', 
-          completed: true,
-          description: 'Analizar la complejidad temporal y espacial de los algoritmos de ordenamiento estudiados en clase. Incluir notación Big O y casos mejor, promedio y peor.'
-        },
-        { 
-          id: 2, 
-          name: 'Ejercicio 2: Comparación de algoritmos', 
-          completed: true,
-          description: 'Realizar una comparación detallada entre QuickSort, MergeSort y HeapSort, incluyendo ventajas y desventajas de cada uno.'
-        },
-      ]
-    },
-    {
-      id: 'practica',
-      name: 'Parte Práctica',
-      exercises: [
-        { 
-          id: 3, 
-          name: 'Ejercicio 3: Implementación de algoritmo', 
-          completed: true,
-          description: 'Implementar el algoritmo de QuickSort en el lenguaje de programación de su elección. El código debe estar bien documentado y seguir buenas prácticas.'
-        },
-        { 
-          id: 4, 
-          name: 'Ejercicio 4: Pruebas unitarias', 
-          completed: false,
-          description: 'Crear un conjunto completo de pruebas unitarias para validar la correctitud de la implementación. Incluir casos edge y casos de prueba exhaustivos.'
-        },
-      ]
-    },
-    {
-      id: 'entrega',
-      name: 'Entrega',
-      exercises: [
-        { 
-          id: 5, 
-          name: 'Ejercicio 5: Documentación', 
-          completed: false,
-          description: 'Preparar un informe técnico que incluya el análisis teórico, la implementación, los resultados de las pruebas y las conclusiones del trabajo.'
-        },
-      ]
-    }
-  ]
 
   // Mock shared groups data
   const sharedGroups = [
@@ -219,6 +260,132 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setSelectedExercise(null)
   }
 
+  const handleEditExercise = (exerciseId: number) => {
+    const exercise = exerciseSections
+      .flatMap(section => section.exercises)
+      .find(ex => ex.id === exerciseId)
+    
+    if (exercise) {
+      setEditData({
+        id: exerciseId,
+        name: exercise.name,
+        description: exercise.description,
+        links: exercise.links || [],
+        attachments: exercise.attachments || []
+      })
+      setEditType('exercise')
+      setShowEditModal(true)
+    }
+  }
+
+  const handleEditSection = (sectionId: string) => {
+    const section = exerciseSections.find(sec => sec.id === sectionId)
+    
+    if (section) {
+      setEditData({
+        id: sectionId,
+        name: section.name
+      })
+      setEditType('section')
+      setShowEditModal(true)
+    }
+  }
+
+  const handleSaveExercise = (exerciseId: number, newName: string, newDescription: string, links?: { text: string; url: string }[], attachments?: string[]) => {
+    setExerciseSections(prev => prev.map(section => ({
+      ...section,
+      exercises: section.exercises.map(exercise => 
+        exercise.id === exerciseId 
+          ? { 
+              ...exercise, 
+              name: newName, 
+              description: newDescription,
+              links: links || exercise.links,
+              attachments: attachments || exercise.attachments
+            }
+          : exercise
+      )
+    })))
+    setEditingExercise(null)
+  }
+
+  const handleSaveSection = (sectionId: string, newName: string) => {
+    setExerciseSections(prev => prev.map(section => 
+      section.id === sectionId 
+        ? { ...section, name: newName }
+        : section
+    ))
+    setEditingSection(null)
+  }
+
+  const handleCancelItemEdit = () => {
+    setEditingExercise(null)
+    setEditingSection(null)
+  }
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false)
+    setEditType(null)
+    setEditData(null)
+  }
+
+  const handleOpenAddSection = () => {
+    setShowAddSectionModal(true)
+  }
+
+  const handleCloseAddSection = () => {
+    setShowAddSectionModal(false)
+    setNewSectionName('')
+  }
+
+  const handleAddSection = () => {
+    if (newSectionName.trim()) {
+      const newSection = {
+        id: `section-${Date.now()}`,
+        name: newSectionName.trim(),
+        exercises: []
+      }
+      setExerciseSections(prev => [...prev, newSection])
+      handleCloseAddSection()
+    }
+  }
+
+  const handleSaveEdit = () => {
+    if (!editData || !editType) return
+
+    if (editType === 'exercise') {
+      handleSaveExercise(
+        editData.id as number, 
+        editData.name, 
+        editData.description || '',
+        editData.links,
+        editData.attachments
+      )
+    } else if (editType === 'section') {
+      handleSaveSection(editData.id as string, editData.name)
+    }
+    
+    handleCloseEditModal()
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files && editData) {
+      const fileNames = Array.from(files).map(file => file.name)
+      setEditData(prev => prev ? {
+        ...prev,
+        attachments: [...(prev.attachments || []), ...fileNames]
+      } : null)
+    }
+  }
+
+  const handleRemoveAttachment = (index: number) => {
+    setEditData(prev => prev ? {
+      ...prev,
+      attachments: prev.attachments?.filter((_, i) => i !== index) || []
+    } : null)
+  }
+
   return (
     <Dialog 
       open={open} 
@@ -258,7 +425,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       <DialogContent sx={{ pt: 2 }}>
         {/* Assignment Info */}
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
               {assignment.name}
             </Typography>
@@ -320,15 +487,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
 
             {/* Shared Groups Section */}
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   Compartido en los siguientes grupos:
                 </Typography>
-                {isEditing && (
-                  <IconButton size="small" color="primary">
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                )}
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AvatarGroup 
@@ -354,9 +516,11 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                     </Avatar>
                   ))}
                 </AvatarGroup>
-                <IconButton size="small" color="primary" sx={{ width: 32, height: 32, ml: 0.5 }} onClick={handleOpenShare}>
-                  <ShareIcon fontSize="small" />
-                </IconButton>
+                {isEditing && (
+                  <IconButton size="small" color="primary" sx={{ width: 32, height: 32, ml: 0.5 }} onClick={handleOpenShare}>
+                    <ShareIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
             </Box>
           </Box>
@@ -365,12 +529,12 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         <Divider sx={{ my: 2 }} />
 
         {/* Exercises Sections */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            Ejercicios
+            Secciones
           </Typography>
           {isEditing && (
-            <IconButton size="small" color="primary">
+            <IconButton size="small" color="primary" onClick={handleOpenAddSection}>
               <AddIcon fontSize="small" />
             </IconButton>
           )}
@@ -379,49 +543,73 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         {exerciseSections.map((section) => (
           <Box key={section.id} sx={{ mb: 2 }}>
             {/* Section Header */}
-            <ListItemButton 
+            <Box 
               onClick={() => toggleSection(section.id)}
               sx={{ 
-                px: 0, 
+                display: 'flex',
+                alignItems: 'center',
+                px: 2, 
                 py: 1, 
                 borderRadius: 1,
+                cursor: 'pointer',
                 '&:hover': { backgroundColor: 'action.hover' }
               }}
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>
+              <Box sx={{ minWidth: 36, display: 'flex', alignItems: 'center' }}>
                 {expandedSections[section.id] ? (
                   <ExpandLessIcon color="primary" />
                 ) : (
                   <ExpandMoreIcon color="primary" />
                 )}
-              </ListItemIcon>
-              <ListItemText 
-                primary={section.name}
+              </Box>
+              <Typography 
+                variant="body1"
                 sx={{
-                  '& .MuiListItemText-primary': {
-                    fontWeight: 'medium',
-                    color: 'primary.main'
-                  }
+                  fontWeight: 'medium',
+                  color: 'primary.main'
                 }}
-              />
+              >
+                {section.name}
+              </Typography>
               {isEditing && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <IconButton size="small" color="primary">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
+                  <IconButton 
+                    size="small" 
+                    color="primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleEditSection(section.id)
+                    }}
+                  >
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error">
+                  <IconButton 
+                    size="small" 
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      console.log('Delete section:', section.id)
+                    }}
+                  >
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
               )}
-            </ListItemButton>
+            </Box>
 
             {/* Section Exercises */}
             {expandedSections[section.id] && (
               <List sx={{ pl: 2, pt: 0 }}>
                 {section.exercises.map((exercise) => (
                   <Box key={exercise.id}>
-                    <ListItem sx={{ px: 0, py: 1 }}>
+                    <ListItem 
+                      sx={{ 
+                        px: 0, 
+                        py: 1,
+                        borderRadius: 1,
+                        '&:hover': { backgroundColor: 'action.hover' }
+                      }}
+                    >
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         {exercise.completed ? (
                           <CheckCircleIcon color="success" fontSize="small" />
@@ -449,20 +637,36 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                           <ExpandMoreIcon fontSize="small" />
                         )}
                       </IconButton>
-                      <IconButton 
-                        size="small" 
-                        color="primary"
-                        onClick={() => handleOpenNotes(exercise.id)}
-                        sx={{ ml: 0.5 }}
-                      >
-                        <NoteIcon fontSize="small" />
-                      </IconButton>
+                      {!isEditing && (
+                        <IconButton 
+                          size="small" 
+                          color="primary"
+                          onClick={() => handleOpenNotes(exercise.id)}
+                          sx={{ ml: 0.5 }}
+                        >
+                          <NoteIcon fontSize="small" />
+                        </IconButton>
+                      )}
                       {isEditing && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-                          <IconButton size="small" color="primary">
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleEditExercise(exercise.id)
+                            }}
+                          >
                             <EditIcon fontSize="small" />
                           </IconButton>
-                          <IconButton size="small" color="error">
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              console.log('Delete exercise:', exercise.id)
+                            }}
+                          >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Box>
@@ -548,22 +752,6 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Compartir notas vinculadas:
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              {sharedGroups.map((group) => (
-                <Chip
-                  key={group.id}
-                  label={group.name}
-                  size="small"
-                  avatar={<Avatar sx={{ bgcolor: group.color, fontSize: '0.7rem' }}>{group.avatar}</Avatar>}
-                  variant="outlined"
-                />
-              ))}
-            </Box>
-          </Box>
           <List>
             {selectedExercise && exerciseNotes[selectedExercise as keyof typeof exerciseNotes]?.map((note) => (
               <ListItem key={note.id} sx={{ px: 0, py: 1 }}>
@@ -675,6 +863,230 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           </Button>
           <Button variant="contained" sx={{ textTransform: 'none' }}>
             Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog 
+        open={showEditModal} 
+        onClose={handleCloseEditModal}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10002 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <EditIcon color="primary" />
+            <Typography variant="h6">
+              {editType === 'section' 
+                ? 'Editar Sección' 
+                : editMode === 'notes' 
+                  ? 'Editar Notas' 
+                  : 'Editar Ejercicio'
+              }
+            </Typography>
+          </Box>
+          {editType === 'exercise' && (
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editMode === 'notes'}
+                  onChange={(e) => setEditMode(e.target.checked ? 'notes' : 'exercise')}
+                  size="small"
+                />
+              }
+              label="Ejercicio <> Notas"
+              labelPlacement="start"
+              sx={{ 
+                '& .MuiFormControlLabel-label': { 
+                  fontSize: '0.8rem',
+                  color: 'text.secondary'
+                }
+              }}
+            />
+          )}
+        </DialogTitle>
+        <DialogContent sx={{ pb: 3 }}>
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Nombre"
+              value={editData?.name || ''}
+              onChange={(e) => setEditData(prev => prev ? { ...prev, name: e.target.value } : null)}
+              sx={{ mb: 3 }}
+            />
+            
+            {editType === 'exercise' && editMode === 'exercise' && (
+              <>
+                <TextField
+                  fullWidth
+                  label="Descripción"
+                  multiline
+                  rows={4}
+                  value={editData?.description || ''}
+                  onChange={(e) => setEditData(prev => prev ? { ...prev, description: e.target.value } : null)}
+                  sx={{ mb: 3 }}
+                />
+
+                {/* Link Section */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <LinkIcon fontSize="small" />
+                    Enlace de referencia
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Texto del enlace"
+                    placeholder="ej: Documentación oficial"
+                    value={editData?.links?.[0]?.text || ''}
+                    onChange={(e) => setEditData(prev => prev ? { 
+                      ...prev, 
+                      links: [{ text: e.target.value, url: prev.links?.[0]?.url || '' }]
+                    } : null)}
+                    sx={{ mb: 1 }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="URL"
+                    placeholder="https://..."
+                    value={editData?.links?.[0]?.url || ''}
+                    onChange={(e) => setEditData(prev => prev ? { 
+                      ...prev, 
+                      links: [{ text: prev.links?.[0]?.text || '', url: e.target.value }]
+                    } : null)}
+                  />
+                </Box>
+
+                {/* Attachments Section */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AttachFileIcon fontSize="small" />
+                    Archivos adjuntos
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<AttachFileIcon />}
+                    sx={{ mb: 2, textTransform: 'none' }}
+                  >
+                    Adjuntar
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx"
+                      onChange={handleFileUpload}
+                    />
+                  </Button>
+
+                  {editData?.attachments && editData.attachments.length > 0 && (
+                    <Box>
+                      {editData.attachments.map((fileName, index) => (
+                        <Chip
+                          key={index}
+                          label={fileName}
+                          onDelete={() => handleRemoveAttachment(index)}
+                          deleteIcon={<CloseAttachmentIcon />}
+                          sx={{ mr: 1, mb: 1 }}
+                          size="small"
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </>
+            )}
+
+            {editType === 'exercise' && editMode === 'notes' && (
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <NoteIcon fontSize="small" />
+                  Notas del ejercicio
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Aquí puedes agregar notas específicas para este ejercicio.
+                </Typography>
+                <TextField
+                  fullWidth
+                  label="Nueva nota"
+                  multiline
+                  rows={3}
+                  placeholder="Escribe una nota para este ejercicio..."
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<AddIcon />}
+                  sx={{ mt: 2, textTransform: 'none' }}
+                >
+                  Agregar Nota
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, pr: 3, pb: 3 }}>
+          <Button onClick={handleCloseEditModal} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveEdit}
+            sx={{ textTransform: 'none' }}
+          >
+            Guardar Cambios
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Section Modal */}
+      <Dialog 
+        open={showAddSectionModal} 
+        onClose={handleCloseAddSection}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10003 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AddIcon color="primary" />
+          <Typography variant="h6">
+            Agregar Nueva Sección
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 1 }}>
+          <Box sx={{ mt: 0.5 }}>
+            <TextField
+              fullWidth
+              label="Nombre de la sección"
+              placeholder="ej: Parte Teórica, Parte Práctica..."
+              value={newSectionName}
+              onChange={(e) => setNewSectionName(e.target.value)}
+              sx={{ mb: 0 }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddSection()
+                }
+              }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, pr: 3, pb: 3 }}>
+          <Button onClick={handleCloseAddSection} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleAddSection}
+            disabled={!newSectionName.trim()}
+            sx={{ textTransform: 'none' }}
+          >
+            Agregar Sección
           </Button>
         </DialogActions>
       </Dialog>
