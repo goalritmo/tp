@@ -69,6 +69,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [isEditing, setIsEditing] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [expandedExercises, setExpandedExercises] = useState<Record<number, boolean>>({})
+  const [previousExpandedSections, setPreviousExpandedSections] = useState<Record<string, boolean>>({})
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
@@ -245,6 +246,9 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   ]
 
   const handleEdit = () => {
+    // Guardar el estado actual de las secciones expandidas
+    setPreviousExpandedSections(expandedSections)
+    
     setIsEditing(true)
     // Expandir todas las secciones al entrar en modo edición
     const allSections = exerciseSections.map(section => section.id)
@@ -258,6 +262,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const handleCancelEdit = () => {
     setIsEditing(false)
     setIsMoveMode(false)
+    
+    // Restaurar el estado anterior de las secciones expandidas
+    setExpandedSections(previousExpandedSections)
+    setExpandedExercises({})
   }
 
   const handleToggleMoveMode = () => {
@@ -293,6 +301,11 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     // TODO: Guardar cambios en el backend
     console.log('Guardando cambios del TP:', assignment.id)
     setIsEditing(false)
+    setIsMoveMode(false)
+    
+    // Restaurar el estado anterior de las secciones expandidas
+    setExpandedSections(previousExpandedSections)
+    setExpandedExercises({})
   }
 
   const handleDelete = () => {
