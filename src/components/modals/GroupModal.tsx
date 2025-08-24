@@ -14,6 +14,7 @@ import {
   Divider,
   LinearProgress,
   TextField,
+  MenuItem,
 } from '@mui/material'
 import {
   Close as CloseIcon,
@@ -27,6 +28,7 @@ import {
   ContentCopy as ContentCopyIcon,
   CalendarToday as CalendarIcon,
   Save as SaveIcon,
+
 } from '@mui/icons-material'
 
 interface GroupMember {
@@ -56,6 +58,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showCodeModal, setShowCodeModal] = useState(false)
+  const [selectedTP, setSelectedTP] = useState<string | null>(null)
+  const [selectedMember, setSelectedMember] = useState<number | null>(null)
   
   if (!group) return null
 
@@ -98,7 +102,25 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setIsEditing(false)
     setShowDelete(false)
     setShowCodeModal(false)
+    setSelectedTP(null)
     onClose()
+  }
+
+  const handleTPClick = (tpName: string) => {
+    setSelectedTP(tpName)
+  }
+
+  const handleBackToTPs = () => {
+    setSelectedTP(null)
+    setSelectedMember(null)
+  }
+
+  const handleMemberSelect = (memberId: number) => {
+    setSelectedMember(memberId)
+  }
+
+  const handleBackToSections = () => {
+    setSelectedMember(null)
   }
 
   const handleOpenCodeModal = () => {
@@ -112,6 +134,103 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const handleCopyCode = () => {
     navigator.clipboard.writeText('GRP-ABC123')
     // Aquí se podría mostrar un snackbar de confirmación
+  }
+
+  // Mock data for TP sections and exercises
+  const tpSections = {
+    'TP 1 - Algoritmos de Ordenamiento': [
+      {
+        id: 'teoria',
+        name: 'Parte Teórica',
+        exercises: [
+          { id: 1, name: 'Ejercicio 1: Análisis de complejidad', completed: true },
+          { id: 2, name: 'Ejercicio 2: Comparación de algoritmos', completed: true },
+        ]
+      },
+      {
+        id: 'practica',
+        name: 'Parte Práctica',
+        exercises: [
+          { id: 3, name: 'Ejercicio 3: Implementación de algoritmo', completed: true },
+          { id: 4, name: 'Ejercicio 4: Pruebas y validación', completed: false },
+        ]
+      }
+    ],
+    'TP 2 - Estructuras de Datos': [
+      {
+        id: 'conceptos',
+        name: 'Conceptos Fundamentales',
+        exercises: [
+          { id: 1, name: 'Ejercicio 1: Definiciones y propiedades', completed: true },
+          { id: 2, name: 'Ejercicio 2: Análisis de casos de uso', completed: false },
+        ]
+      },
+      {
+        id: 'implementacion',
+        name: 'Implementación',
+        exercises: [
+          { id: 3, name: 'Ejercicio 3: Código base', completed: false },
+          { id: 4, name: 'Ejercicio 4: Optimizaciones', completed: false },
+        ]
+      }
+    ]
+  }
+
+  // Mock data for member progress
+  const memberProgress = {
+    'TP 1 - Algoritmos de Ordenamiento': {
+      1: { // Juan Pérez
+        progress: 100,
+        completedExercises: 4,
+        totalExercises: 4,
+        notes: [
+          { id: 1, text: 'Complejidad O(n log n) en promedio', timestamp: '2025-01-15T10:30:00' },
+          { id: 2, text: 'QuickSort es más rápido en la práctica', timestamp: '2025-01-16T09:00:00' },
+        ]
+      },
+      2: { // María García
+        progress: 75,
+        completedExercises: 3,
+        totalExercises: 4,
+        notes: [
+          { id: 3, text: 'Usar pivot aleatorio para evitar caso peor', timestamp: '2025-01-17T14:20:00' },
+        ]
+      },
+      3: { // Carlos López
+        progress: 50,
+        completedExercises: 2,
+        totalExercises: 4,
+        notes: []
+      },
+      4: { // Ana Martínez
+        progress: 25,
+        completedExercises: 1,
+        totalExercises: 4,
+        notes: []
+      }
+    },
+    'TP 2 - Estructuras de Datos': {
+      1: { // Juan Pérez
+        progress: 50,
+        completedExercises: 2,
+        totalExercises: 4,
+        notes: []
+      },
+      5: { // Laura Silva
+        progress: 75,
+        completedExercises: 3,
+        totalExercises: 4,
+        notes: [
+          { id: 4, text: 'Implementar con recursión de cola', timestamp: '2025-01-17T15:45:00' },
+        ]
+      },
+      6: { // Roberto Díaz
+        progress: 25,
+        completedExercises: 1,
+        totalExercises: 4,
+        notes: []
+      }
+    }
   }
 
   return (
@@ -280,22 +399,79 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         <Divider sx={{ my: 2 }} />
 
         {/* Active Assignments Section */}
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-          TPs activos
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 'bold',
+              cursor: selectedTP ? 'pointer' : 'default',
+              '&:hover': selectedTP ? { color: 'primary.main' } : {}
+            }}
+            onClick={selectedTP ? handleBackToTPs : undefined}
+          >
+            TPs activos
+          </Typography>
+          {selectedTP && (
+            <>
+              <Typography variant="h6" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                &gt;
+              </Typography>
+              <Typography 
+                variant="h6" 
+                color="text.secondary"
+                sx={{ 
+                  cursor: selectedMember ? 'pointer' : 'default',
+                  '&:hover': selectedMember ? { color: 'primary.main' } : {}
+                }}
+                onClick={selectedMember ? handleBackToSections : undefined}
+              >
+                {selectedTP}
+              </Typography>
+              <Typography variant="h6" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+                &gt;
+              </Typography>
+              <Box sx={{ minWidth: 250, mt: 1.875 }}>
+                <TextField
+                  select
+                  value={selectedMember || ''}
+                  onChange={(e) => handleMemberSelect(Number(e.target.value))}
+                  size="small"
+                  variant="outlined"
+                  placeholder="Seleccionar miembro"
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { 
+                      height: 32,
+                      fontSize: '0.9rem'
+                    }
+                  }}
+                >
+                  {group.members.map((member) => (
+                    <MenuItem key={member.id} value={member.id}>
+                      {member.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </>
+          )}
+        </Box>
         
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-          {/* Mock active assignments */}
-          <Box sx={{ 
-            p: 2, 
-            border: '1px solid', 
-            borderColor: 'divider', 
-            borderRadius: 2,
-            '&:hover': { 
-              borderColor: 'primary.main',
-              bgcolor: 'action.hover' 
-            }
-          }}>
+        {!selectedTP ? (
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+            {/* Mock active assignments */}
+            <Box sx={{ 
+              p: 2, 
+              border: '1px solid', 
+              borderColor: 'divider', 
+              borderRadius: 2,
+              cursor: 'pointer',
+              '&:hover': { 
+                borderColor: 'primary.main',
+                bgcolor: 'action.hover' 
+              }
+            }}
+            onClick={() => handleTPClick('TP 1 - Algoritmos de Ordenamiento')}
+            >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 TP 1 - Algoritmos de Ordenamiento
@@ -341,11 +517,14 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             border: '1px solid', 
             borderColor: 'divider', 
             borderRadius: 2,
+            cursor: 'pointer',
             '&:hover': { 
               borderColor: 'primary.main',
               bgcolor: 'action.hover' 
             }
-          }}>
+          }}
+          onClick={() => handleTPClick('TP 2 - Estructuras de Datos')}
+          >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>
                 TP 2 - Estructuras de Datos
@@ -386,6 +565,106 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             </Box>
           </Box>
         </Box>
+                  ) : (
+        // TP Sections View
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {selectedTP && tpSections[selectedTP as keyof typeof tpSections]?.map((section) => (
+            <Box key={section.id} sx={{ 
+              border: '1px solid', 
+              borderColor: 'divider', 
+              borderRadius: 2,
+              overflow: 'hidden'
+            }}>
+              {/* Section Header */}
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'grey.50',
+                borderBottom: '1px solid',
+                borderColor: 'divider'
+              }}>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {section.name}
+                </Typography>
+              </Box>
+              
+                          {/* Exercises */}
+            <Box sx={{ p: 0 }}>
+              {section.exercises.map((exercise) => {
+                // Check if member has completed this exercise
+                const memberData = selectedMember && selectedTP ? 
+                  (memberProgress as any)[selectedTP]?.[selectedMember] : null;
+                const isCompletedByMember = memberData?.completedExercises >= exercise.id;
+                
+                // Check if member has notes for this exercise
+                const hasNotes = memberData?.notes?.some((note: any) => 
+                  note.text.toLowerCase().includes(exercise.name.toLowerCase().split(':')[0])
+                );
+                
+                return (
+                  <Box key={exercise.id} sx={{
+                    p: 2,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    '&:last-child': { borderBottom: 'none' },
+                    '&:hover': { bgcolor: 'action.hover' }
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'space-between' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: selectedMember ? 
+                            (isCompletedByMember ? 'success.main' : 'grey.300') : 
+                            (exercise.completed ? 'success.main' : 'grey.300'),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {(selectedMember ? isCompletedByMember : exercise.completed) && (
+                            <Box sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: 'white'
+                            }} />
+                          )}
+                        </Box>
+                        <Typography variant="body2" sx={{
+                          color: selectedMember ? 
+                            (isCompletedByMember ? 'text.primary' : 'text.secondary') :
+                            (exercise.completed ? 'text.primary' : 'text.secondary'),
+                          textDecoration: selectedMember ? 
+                            (isCompletedByMember ? 'line-through' : 'none') :
+                            (exercise.completed ? 'line-through' : 'none')
+                        }}>
+                          {exercise.name}
+                        </Typography>
+                      </Box>
+                      {selectedMember && hasNotes && (
+                        <Box sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          bgcolor: 'info.main',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '0.7rem'
+                        }}>
+                          N
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
       </DialogContent>
 
       <Divider />
