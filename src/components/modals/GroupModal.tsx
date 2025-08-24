@@ -754,7 +754,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             Comparte este código con tus amigos para que se unan al grupo:
           </Typography>
           
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
             <TextField
               value="GRP-ABC123"
               fullWidth
@@ -774,18 +774,35 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
               color="primary" 
               onClick={handleCopyCode}
               sx={{ 
-                bgcolor: 'primary.main',
-                color: 'white',
-                '&:hover': { bgcolor: 'primary.dark' }
+                bgcolor: 'transparent',
+                color: 'primary.main',
+                border: '1px solid',
+                borderColor: 'primary.main',
+                '&:hover': { 
+                  bgcolor: 'primary.main',
+                  color: 'white'
+                }
               }}
             >
               <ContentCopyIcon />
             </IconButton>
+            <IconButton 
+              color="primary" 
+              onClick={() => console.log('Editar código')}
+              sx={{ 
+                bgcolor: 'transparent',
+                color: 'primary.main',
+                border: '1px solid',
+                borderColor: 'primary.main',
+                '&:hover': { 
+                  bgcolor: 'primary.main',
+                  color: 'white'
+                }
+              }}
+            >
+              <EditIcon />
+            </IconButton>
           </Box>
-          
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            El código expira en 7 días
-          </Typography>
         </DialogContent>
 
         <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
