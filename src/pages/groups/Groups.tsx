@@ -14,10 +14,14 @@ import {
 } from '@mui/material'
 import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
 import GroupModal from '../../components/modals/GroupModal'
+import AddGroupOptionsModal from '../../components/modals/AddGroupOptionsModal'
+import AddGroupModal from '../../components/modals/AddGroupModal'
 
 export default function Groups() {
   const [selectedGroup, setSelectedGroup] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -67,6 +71,51 @@ export default function Groups() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedGroup(null)
+  }
+
+  const handleAddGroup = () => {
+    setIsOptionsModalOpen(true)
+  }
+
+  const handleCloseOptionsModal = () => {
+    setIsOptionsModalOpen(false)
+  }
+
+  const handleCreateNew = () => {
+    setIsOptionsModalOpen(false)
+    setIsAddModalOpen(true)
+  }
+
+  const handleBackToOptions = () => {
+    setIsAddModalOpen(false)
+    setIsOptionsModalOpen(true)
+  }
+
+  const handleJoinExisting = (code: string) => {
+    // Aquí se manejaría la lógica para unirse a un grupo existente
+    console.log('Unirse al grupo con código:', code)
+    setIsOptionsModalOpen(false)
+    // Por ahora solo mostramos el código en consola
+    // En el futuro aquí se haría la petición al backend
+  }
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false)
+  }
+
+  const handleSaveGroup = (groupData: {
+    name: string
+    subject: string
+    description: string
+    isPrivate: boolean
+    groupPhoto: File | null
+  }) => {
+    // Aquí se guardaría en la base de datos
+    console.log('Nuevo grupo creado:', groupData)
+    
+    // Por ahora solo cerramos el modal
+    // En el futuro, aquí se agregaría el nuevo grupo a la lista
+    setIsAddModalOpen(false)
   }
 
   return (
@@ -197,7 +246,7 @@ export default function Groups() {
             justifyContent: 'center',
 
           }}
-          onClick={() => console.log('Add new group')}
+          onClick={handleAddGroup}
         >
           <Box sx={{ textAlign: 'center' }}>
             <AddIcon color="primary" sx={{ fontSize: 48 }} />
@@ -210,6 +259,22 @@ export default function Groups() {
           </Box>
         </Card>
       </Box>
+
+      {/* Add Group Options Modal */}
+      <AddGroupOptionsModal
+        open={isOptionsModalOpen}
+        onClose={handleCloseOptionsModal}
+        onCreateNew={handleCreateNew}
+        onJoinExisting={handleJoinExisting}
+      />
+
+      {/* Add Group Modal */}
+      <AddGroupModal
+        open={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onBack={handleBackToOptions}
+        onSave={handleSaveGroup}
+      />
 
       {/* Group Modal */}
       <GroupModal
