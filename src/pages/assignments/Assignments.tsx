@@ -13,10 +13,12 @@ import {
 } from '@mui/material'
 import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
 import AssignmentModal from '../../components/modals/AssignmentModal'
+import AddAssignmentModal from '../../components/modals/AddAssignmentModal'
 
 export default function Assignments() {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -56,6 +58,28 @@ export default function Assignments() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedAssignment(null)
+  }
+
+  const handleAddAssignment = () => {
+    setIsAddModalOpen(true)
+  }
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false)
+  }
+
+  const handleSaveAssignment = (assignmentData: {
+    name: string
+    subject: string
+    dueDate: string
+    description: string
+  }) => {
+    // Aquí se guardaría en la base de datos
+    console.log('Nuevo TP creado:', assignmentData)
+    
+    // Por ahora solo cerramos el modal
+    // En el futuro, aquí se agregaría el nuevo TP a la lista
+    setIsAddModalOpen(false)
   }
 
   return (
@@ -176,7 +200,7 @@ export default function Assignments() {
             justifyContent: 'center',
 
           }}
-          onClick={() => console.log('Add new assignment')}
+          onClick={handleAddAssignment}
         >
           <Box sx={{ textAlign: 'center' }}>
             <AddIcon color="primary" sx={{ fontSize: 48 }} />
@@ -195,6 +219,13 @@ export default function Assignments() {
         open={isModalOpen}
         onClose={handleCloseModal}
         assignment={selectedAssignment}
+      />
+
+      {/* Add Assignment Modal */}
+      <AddAssignmentModal
+        open={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onSave={handleSaveAssignment}
       />
     </Box>
   )
