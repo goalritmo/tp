@@ -113,6 +113,8 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [originalNoteData, setOriginalNoteData] = useState<{ name: string; description: string } | null>(null)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [showDeleteTPModal, setShowDeleteTPModal] = useState(false)
+  const [showGroupModal, setShowGroupModal] = useState(false)
+  const [selectedGroupForModal, setSelectedGroupForModal] = useState<any>(null)
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
   const [showAddLinkModal, setShowAddLinkModal] = useState(false)
   const [newLinkData, setNewLinkData] = useState<{ text: string; url: string }>({ text: '', url: '' })
@@ -329,11 +331,24 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setShowDeleteTPModal(false)
   }
 
+  const handleGroupClick = (group: any) => {
+    setSelectedGroupForModal(group)
+    setShowGroupModal(true)
+  }
+
+  const handleCloseGroupModal = () => {
+    setShowGroupModal(false)
+    setSelectedGroupForModal(null)
+  }
+
   const handleCloseModal = () => {
     setIsEditing(false)
     setIsMoveMode(false)
     setExpandedSections({})
     setExpandedExercises({})
+    setShowDeleteTPModal(false)
+    setShowGroupModal(false)
+    setSelectedGroupForModal(null)
     onClose()
   }
 
@@ -911,7 +926,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                       key={group.id}
                       sx={{ 
                         bgcolor: group.color,
+                        cursor: 'pointer',
+                        '&:hover': { opacity: 0.8 }
                       }}
+                      onClick={() => handleGroupClick(group)}
                     >
                       {group.avatar}
                     </Avatar>
@@ -2022,6 +2040,177 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             sx={{ textTransform: 'none' }}
           >
             Eliminar TP
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Group Info Modal */}
+      <Dialog
+        open={showGroupModal}
+        onClose={handleCloseGroupModal}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10009 }}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" component="span">
+            Información del grupo
+          </Typography>
+          <IconButton onClick={handleCloseGroupModal} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ pt: 2, pb: 1 }}>
+          {selectedGroupForModal && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Group Avatar and Name */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar
+                  sx={{ 
+                    width: 64, 
+                    height: 64, 
+                    fontSize: '1.5rem',
+                    bgcolor: selectedGroupForModal.color
+                  }}
+                >
+                  {selectedGroupForModal.avatar}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {selectedGroupForModal.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Grupo de estudio
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Group Stats */}
+              <Box sx={{ 
+                p: 2, 
+                border: '1px solid', 
+                borderColor: 'divider', 
+                borderRadius: 2,
+                bgcolor: 'grey.50'
+              }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Estadísticas del grupo:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 3 }}>
+                  <Box>
+                    <Typography variant="h6" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                      8
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Miembros
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" color="success.main" sx={{ fontWeight: 'bold' }}>
+                      5
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      TPs activos
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" color="warning.main" sx={{ fontWeight: 'bold' }}>
+                      78%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Progreso promedio
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Group Description */}
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Descripción:
+                </Typography>
+                <Typography variant="body2">
+                  Grupo de estudio para la materia de Algoritmos y Estructuras de Datos. 
+                  Compartimos recursos, resolvemos dudas y trabajamos en conjunto en los TPs.
+                </Typography>
+              </Box>
+
+              {/* Recent Activity */}
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Actividad reciente:
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderRadius: '50%', 
+                      bgcolor: 'success.main' 
+                    }} />
+                    <Typography variant="body2">
+                      Juan completó TP 1 - Algoritmos
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      hace 1h
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderRadius: '50%', 
+                      bgcolor: 'info.main' 
+                    }} />
+                    <Typography variant="body2">
+                      María agregó nota en TP 2
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      hace 3h
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderRadius: '50%', 
+                      bgcolor: 'primary.main' 
+                    }} />
+                    <Typography variant="body2">
+                      Se agregó nuevo TP al grupo
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      hace 1d
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            onClick={handleCloseGroupModal}
+            sx={{ textTransform: 'none' }}
+          >
+            Cerrar
           </Button>
         </DialogActions>
       </Dialog>

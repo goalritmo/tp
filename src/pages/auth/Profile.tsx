@@ -31,7 +31,7 @@ import {
 } from '@mui/icons-material'
 
 export default function Profile() {
-  const [activeSection, setActiveSection] = useState('') // '', 'notifications', 'settings', 'editing'
+  const [activeSection, setActiveSection] = useState('') // '', 'notifications', 'settings', 'logout', 'editing'
   const [isEditing, setIsEditing] = useState(false)
   const [editedProfile, setEditedProfile] = useState({
     name: '',
@@ -155,6 +155,10 @@ export default function Profile() {
     }
   }
 
+  const handleLogoutClick = () => {
+    handleMenuClick('logout')
+  }
+
   const handleMarkAsRead = (notificationId: number) => {
     setNotificationsState(prev => 
       prev.map(notification => 
@@ -192,7 +196,7 @@ export default function Profile() {
       id: 'logout',
       icon: <LogoutIcon />, 
       text: 'Cerrar Sesión', 
-      action: () => console.log('Logout')
+      action: handleLogoutClick
     },
   ]
 
@@ -408,11 +412,22 @@ export default function Profile() {
           Configuración
         </Typography>
         <Typography variant="body2" color="text.secondary" textAlign="center">
-          Aquí podrás configurar las preferencias de tu cuenta, notificaciones y privacidad.
-        </Typography>
-        <Button variant="outlined" sx={{ mt: 2 }}>
           Próximamente
-        </Button>
+        </Typography>
+      </Box>
+    )
+  }
+
+  const renderLogoutContent = () => {
+    return (
+      <Box sx={{ p: 3, height: '280px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <LogoutIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+        <Typography variant="h6" gutterBottom>
+          Cerrar Sesión
+        </Typography>
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          Próximamente
+        </Typography>
       </Box>
     )
   }
@@ -423,6 +438,8 @@ export default function Profile() {
         return renderNotificationsContent()
       case 'settings':
         return renderSettingsContent()
+      case 'logout':
+        return renderLogoutContent()
       default:
         return renderProfileContent()
     }
@@ -615,6 +632,8 @@ export default function Profile() {
           </CardContent>
         </Card>
       </Box>
+
+
 
     </Box>
   )

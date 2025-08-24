@@ -58,6 +58,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [showCodeModal, setShowCodeModal] = useState(false)
+  const [showMemberModal, setShowMemberModal] = useState(false)
+  const [selectedMemberForModal, setSelectedMemberForModal] = useState<GroupMember | null>(null)
   const [selectedTP, setSelectedTP] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<number | null>(null)
   
@@ -102,6 +104,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setIsEditing(false)
     setShowDelete(false)
     setShowCodeModal(false)
+    setShowMemberModal(false)
+    setSelectedMemberForModal(null)
     setSelectedTP(null)
     onClose()
   }
@@ -121,6 +125,16 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
 
   const handleBackToSections = () => {
     setSelectedMember(null)
+  }
+
+  const handleMemberClick = (member: GroupMember) => {
+    setSelectedMemberForModal(member)
+    setShowMemberModal(true)
+  }
+
+  const handleCloseMemberModal = () => {
+    setShowMemberModal(false)
+    setSelectedMemberForModal(null)
   }
 
   const handleOpenCodeModal = () => {
@@ -362,8 +376,11 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
                     <Avatar
                       key={member.id}
                       sx={{ 
-                        bgcolor: 'primary.main'
+                        bgcolor: 'primary.main',
+                        cursor: 'pointer',
+                        '&:hover': { opacity: 0.8 }
                       }}
+                      onClick={() => handleMemberClick(member)}
                     >
                       {member.avatar}
                     </Avatar>
@@ -832,6 +849,149 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             sx={{ textTransform: 'none' }}
           >
             Eliminar grupo
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Member Info Modal */}
+      <Dialog
+        open={showMemberModal}
+        onClose={handleCloseMemberModal}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" component="span">
+            Información del miembro
+          </Typography>
+          <IconButton onClick={handleCloseMemberModal} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ pt: 2, pb: 1 }}>
+          {selectedMemberForModal && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {/* Member Avatar and Name */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar
+                  sx={{ 
+                    width: 64, 
+                    height: 64, 
+                    fontSize: '1.5rem',
+                    bgcolor: 'primary.main'
+                  }}
+                >
+                  {selectedMemberForModal.avatar}
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                    {selectedMemberForModal.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedMemberForModal.role || 'Miembro del grupo'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Member Stats */}
+              <Box sx={{ 
+                p: 2, 
+                border: '1px solid', 
+                borderColor: 'divider', 
+                borderRadius: 2,
+                bgcolor: 'grey.50'
+              }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Estadísticas en este grupo:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 3 }}>
+                  <Box>
+                    <Typography variant="h6" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                      3
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      TPs completados
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" color="success.main" sx={{ fontWeight: 'bold' }}>
+                      85%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Promedio
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Typography variant="h6" color="warning.main" sx={{ fontWeight: 'bold' }}>
+                      12
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Notas creadas
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Recent Activity */}
+              <Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  Actividad reciente:
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderRadius: '50%', 
+                      bgcolor: 'success.main' 
+                    }} />
+                    <Typography variant="body2">
+                      Completó ejercicio en TP 1 - Algoritmos
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      hace 2h
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      width: 8, 
+                      height: 8, 
+                      borderRadius: '50%', 
+                      bgcolor: 'info.main' 
+                    }} />
+                    <Typography variant="body2">
+                      Agregó nota en TP 2 - Estructuras
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
+                      hace 1d
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            onClick={handleCloseMemberModal}
+            sx={{ textTransform: 'none' }}
+          >
+            Cerrar
           </Button>
         </DialogActions>
       </Dialog>

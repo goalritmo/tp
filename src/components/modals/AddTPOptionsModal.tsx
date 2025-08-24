@@ -118,6 +118,28 @@ export default function AddTPOptionsModal({
               Ingresa el código de un TP creado por alguien más
             </Typography>
             
+            {/* Info sobre TPs oficiales */}
+            <Box
+              sx={{
+                border: '1px solid',
+                borderColor: 'info.main',
+                borderRadius: 2,
+                p: 2,
+                bgcolor: 'info.50',
+                mb: 2,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <InfoIcon color="info" fontSize="small" />
+                <Typography variant="body2" color="info.main" sx={{ fontWeight: 500 }}>
+                  TPs oficiales disponibles:
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
+                ALGO1TP0 • ALGO1TP1
+              </Typography>
+            </Box>
+            
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: -1, mb: -1 }}>
               <TextField
                 fullWidth
@@ -138,28 +160,6 @@ export default function AddTPOptionsModal({
                 Agregar
               </Button>
             </Box>
-          </Box>
-
-          {/* Info sobre TPs oficiales */}
-          <Box
-            sx={{
-              border: '1px solid',
-              borderColor: 'info.main',
-              borderRadius: 2,
-              p: 2,
-              bgcolor: 'info.50',
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <InfoIcon color="info" fontSize="small" />
-              <Typography variant="body2" color="info.main" sx={{ fontWeight: 500 }}>
-                TPs oficiales disponibles:
-              </Typography>
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
-              ALGO1TP0<br />
-              ALGO1TP1
-            </Typography>
           </Box>
         </Box>
       </DialogContent>
