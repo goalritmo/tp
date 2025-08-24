@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import AddTPOptionsModal from './AddTPOptionsModal'
+import AddAssignmentModal from './AddAssignmentModal'
 import {
   Dialog,
   DialogTitle,
@@ -62,6 +64,12 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [selectedMemberForModal, setSelectedMemberForModal] = useState<GroupMember | null>(null)
   const [selectedTP, setSelectedTP] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<number | null>(null)
+  const [showAddTPModal, setShowAddTPModal] = useState(false)
+  const [showCreateTPModal, setShowCreateTPModal] = useState(false)
+  const [groupTPs, setGroupTPs] = useState([
+    'TP 1 - Algoritmos de Ordenamiento',
+    'TP 2 - Estructuras de Datos'
+  ])
   
   if (!group) return null
 
@@ -105,6 +113,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setShowDelete(false)
     setShowCodeModal(false)
     setShowMemberModal(false)
+    setShowAddTPModal(false)
+    setShowCreateTPModal(false)
     setSelectedMemberForModal(null)
     setSelectedTP(null)
     onClose()
@@ -148,6 +158,37 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const handleCopyCode = () => {
     navigator.clipboard.writeText('GRP-ABC123')
     // Aquí se podría mostrar un snackbar de confirmación
+  }
+
+  const handleOpenAddTPModal = () => {
+    setShowAddTPModal(true)
+  }
+
+  const handleCloseAddTPModal = () => {
+    setShowAddTPModal(false)
+  }
+
+  const handleCreateTPFromScratch = () => {
+    setShowAddTPModal(false)
+    setShowCreateTPModal(true)
+  }
+
+  const handleCloseCreateTPModal = () => {
+    setShowCreateTPModal(false)
+  }
+
+  const handleCreateTP = (tpData: any) => {
+    // Crear TP desde cero y agregarlo al grupo
+    const newTPName = `TP ${groupTPs.length + 1} - ${tpData.name}`
+    setGroupTPs(prev => [...prev, newTPName])
+    setShowCreateTPModal(false)
+  }
+
+  const handleJoinTP = (tpCode: string) => {
+    // Unirse a TP existente y agregarlo al grupo
+    const newTPName = `TP ${groupTPs.length + 1} - TP Existente (${tpCode})`
+    setGroupTPs(prev => [...prev, newTPName])
+    setShowAddTPModal(false)
   }
 
   // Mock data for TP sections and exercises
@@ -475,24 +516,25 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
         
         {!selectedTP ? (
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-            {/* Mock active assignments */}
-            <Box sx={{ 
-              p: 2, 
-              border: '1px solid', 
-              borderColor: 'divider', 
-              borderRadius: 2,
-              cursor: 'pointer',
-              '&:hover': { 
-                borderColor: 'primary.main',
-                bgcolor: 'action.hover' 
-              }
-            }}
-            onClick={() => handleTPClick('TP 1 - Algoritmos de Ordenamiento')}
-            >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                TP 1 - Algoritmos de Ordenamiento
-              </Typography>
+            {/* Active assignments */}
+            {groupTPs.map((tpName) => (
+              <Box key={tpName} sx={{ 
+                p: 2, 
+                border: '1px solid', 
+                borderColor: 'divider', 
+                borderRadius: 2,
+                cursor: isEditing ? 'default' : 'pointer',
+                '&:hover': isEditing ? {} : { 
+                  borderColor: 'primary.main',
+                  bgcolor: 'action.hover' 
+                }
+              }}
+              onClick={isEditing ? undefined : () => handleTPClick(tpName)}
+              >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  {tpName}
+                </Typography>
               <Chip 
                 label="En progreso"
                 size="small"
@@ -528,59 +570,37 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
               </Typography>
             </Box>
           </Box>
+            ))}
 
-          <Box sx={{ 
-            p: 2, 
-            border: '1px solid', 
-            borderColor: 'divider', 
-            borderRadius: 2,
-            cursor: 'pointer',
-            '&:hover': { 
+          {/* Add TP Card - Only in edit mode */}
+          {isEditing && (
+            <Box sx={{ 
+              p: 2, 
+              border: '2px dashed', 
               borderColor: 'primary.main',
-              bgcolor: 'action.hover' 
-            }
-          }}
-          onClick={() => handleTPClick('TP 2 - Estructuras de Datos')}
+              borderRadius: 2,
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '140px',
+              '&:hover': { 
+                borderColor: 'primary.dark',
+                bgcolor: 'primary.50' 
+              }
+            }}
+            onClick={handleOpenAddTPModal}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                TP 2 - Estructuras de Datos
-              </Typography>
-              <Chip 
-                label="Pendiente"
-                size="small"
-                color="default"
-                sx={{ fontSize: '0.7rem' }}
-              />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-              <CalendarIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                Fecha límite: 22 de Marzo, 2025
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box sx={{ flex: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    Progreso
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    25%
-                  </Typography>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={25}
-                  color="primary"
-                  sx={{ height: 6, borderRadius: 3 }}
-                />
-              </Box>
-              <Typography variant="caption" color="text.secondary">
-                2 de 8 ejercicios
-              </Typography>
-            </Box>
+            <AddIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+            <Typography variant="body1" color="primary.main" sx={{ fontWeight: 500, textAlign: 'center' }}>
+              Agregar TP
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              Agregar un nuevo trabajo práctico al grupo
+            </Typography>
           </Box>
+          )}
         </Box>
                   ) : (
         // TP Sections View
@@ -707,14 +727,16 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             </Button>
           </>
         ) : (
-          <Button
-            variant="contained"
-            startIcon={<EditIcon />}
-            onClick={handleEdit}
-            sx={{ textTransform: 'none' }}
-          >
-            Editar
-          </Button>
+          !selectedTP && (
+            <Button
+              variant="contained"
+              startIcon={<EditIcon />}
+              onClick={handleEdit}
+              sx={{ textTransform: 'none' }}
+            >
+              Editar
+            </Button>
+          )
         )}
       </DialogActions>
 
@@ -995,6 +1017,22 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Add TP Options Modal */}
+      <AddTPOptionsModal
+        open={showAddTPModal}
+        onClose={handleCloseAddTPModal}
+        onCreateNew={handleCreateTPFromScratch}
+        onJoinExisting={handleJoinTP}
+      />
+
+      {/* Create TP Modal */}
+      <AddAssignmentModal
+        open={showCreateTPModal}
+        onClose={handleCloseCreateTPModal}
+        onBack={handleCloseCreateTPModal}
+        onSave={handleCreateTP}
+      />
     </Dialog>
   )
 }
