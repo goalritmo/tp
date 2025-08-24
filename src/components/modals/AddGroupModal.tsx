@@ -8,10 +8,6 @@ import {
   Box,
   Typography,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Avatar,
   IconButton,
 } from '@mui/material'
@@ -36,22 +32,12 @@ interface AddGroupModalProps {
   }) => void
 }
 
-// Mock subjects - esto podría venir de una API
-const mockSubjects = [
-  'Algoritmos y Estructuras de Datos',
-  'Programación Orientada a Objetos',
-  'Bases de Datos',
-  'Sistemas Operativos',
-  'Redes de Computadoras',
-  'Inteligencia Artificial',
-  'Desarrollo Web',
-  'Ingeniería de Software',
-]
+
 
 export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGroupModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    subject: '',
+    subject: 'Algoritmos I',
     description: '',
     isPrivate: true,
     groupPhoto: null as File | null,
@@ -104,7 +90,7 @@ export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGrou
       // Si hay contenido, cerrar completamente
       setFormData({
         name: '',
-        subject: '',
+        subject: 'Algoritmos I',
         description: '',
         isPrivate: true,
         groupPhoto: null,
@@ -118,7 +104,7 @@ export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGrou
   }
 
   // Verificar si el formulario tiene contenido
-  const hasFormContent = formData.name.trim() || formData.subject || formData.description.trim() || formData.groupPhoto
+  const hasFormContent = formData.name.trim() || formData.description.trim() || formData.groupPhoto
 
   return (
     <Dialog
@@ -157,31 +143,16 @@ export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGrou
           />
 
           {/* Materia */}
-          <FormControl fullWidth error={!!errors.subject} sx={{ mb: 3 }}>
-            <InputLabel>Materia</InputLabel>
-            <Select
-              value={formData.subject}
-              label="Materia"
-              onChange={(e) => handleInputChange('subject', e.target.value)}
-              startAdornment={<SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-              MenuProps={{
-                PaperProps: {
-                  sx: { zIndex: 1400 }
-                }
-              }}
-            >
-              {mockSubjects.map((subject) => (
-                <MenuItem key={subject} value={subject}>
-                  {subject}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.subject && (
-              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                {errors.subject}
-              </Typography>
-            )}
-          </FormControl>
+          <TextField
+            fullWidth
+            label="Materia"
+            value="Algoritmos I"
+            disabled
+            InputProps={{
+              startAdornment: <SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+            sx={{ mb: 3 }}
+          />
 
           {/* Foto del grupo y Descripción en la misma fila */}
           <Box sx={{ display: 'flex', gap: 3, mb: 0, alignItems: 'flex-start' }}>

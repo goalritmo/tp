@@ -8,11 +8,6 @@ import {
   TextField,
   Box,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-
   IconButton,
 } from '@mui/material'
 import {
@@ -34,22 +29,12 @@ interface AddAssignmentModalProps {
   }) => void
 }
 
-// Mock subjects - esto podría venir de una API
-const mockSubjects = [
-  'Algoritmos y Estructuras de Datos',
-  'Programación Orientada a Objetos',
-  'Bases de Datos',
-  'Sistemas Operativos',
-  'Redes de Computadoras',
-  'Inteligencia Artificial',
-  'Desarrollo Web',
-  'Ingeniería de Software',
-]
+
 
 export default function AddAssignmentModal({ open, onClose, onBack, onSave }: AddAssignmentModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    subject: '',
+    subject: 'Algoritmos I',
     dueDate: '',
     description: '',
   })
@@ -106,7 +91,7 @@ export default function AddAssignmentModal({ open, onClose, onBack, onSave }: Ad
       // Si hay contenido, cerrar completamente
       setFormData({
         name: '',
-        subject: '',
+        subject: 'Algoritmos I',
         dueDate: '',
         description: '',
       })
@@ -119,7 +104,7 @@ export default function AddAssignmentModal({ open, onClose, onBack, onSave }: Ad
   }
 
   // Verificar si el formulario tiene contenido
-  const hasFormContent = formData.name.trim() || formData.subject || formData.dueDate || formData.description.trim()
+  const hasFormContent = formData.name.trim() || formData.dueDate || formData.description.trim()
 
   return (
     <Dialog
@@ -209,31 +194,16 @@ export default function AddAssignmentModal({ open, onClose, onBack, onSave }: Ad
           </Box>
 
           {/* Materia */}
-          <FormControl fullWidth error={!!errors.subject} sx={{ mb: 3 }}>
-            <InputLabel>Materia</InputLabel>
-            <Select
-              value={formData.subject}
-              label="Materia"
-              onChange={(e) => handleInputChange('subject', e.target.value)}
-              startAdornment={<SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />}
-              MenuProps={{
-                PaperProps: {
-                  sx: { zIndex: 1400 }
-                }
-              }}
-            >
-              {mockSubjects.map((subject) => (
-                <MenuItem key={subject} value={subject}>
-                  {subject}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.subject && (
-              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                {errors.subject}
-              </Typography>
-            )}
-          </FormControl>
+          <TextField
+            fullWidth
+            label="Materia"
+            value="Algoritmos I"
+            disabled
+            InputProps={{
+              startAdornment: <SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+            }}
+            sx={{ mb: 3 }}
+          />
 
           {/* Descripción */}
           <TextField
