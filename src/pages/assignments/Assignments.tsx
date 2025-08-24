@@ -14,11 +14,13 @@ import {
 import { Add as AddIcon, Info as InfoIcon } from '@mui/icons-material'
 import AssignmentModal from '../../components/modals/AssignmentModal'
 import AddAssignmentModal from '../../components/modals/AddAssignmentModal'
+import AddTPOptionsModal from '../../components/modals/AddTPOptionsModal'
 
 export default function Assignments() {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -61,7 +63,29 @@ export default function Assignments() {
   }
 
   const handleAddAssignment = () => {
+    setIsOptionsModalOpen(true)
+  }
+
+  const handleCloseOptionsModal = () => {
+    setIsOptionsModalOpen(false)
+  }
+
+  const handleCreateNew = () => {
+    setIsOptionsModalOpen(false)
     setIsAddModalOpen(true)
+  }
+
+  const handleBackToOptions = () => {
+    setIsAddModalOpen(false)
+    setIsOptionsModalOpen(true)
+  }
+
+  const handleJoinExisting = (code: string) => {
+    // Aquí se manejaría la lógica para unirse a un TP existente
+    console.log('Unirse al TP con código:', code)
+    setIsOptionsModalOpen(false)
+    // Por ahora solo mostramos el código en consola
+    // En el futuro aquí se haría la petición al backend
   }
 
   const handleCloseAddModal = () => {
@@ -221,10 +245,19 @@ export default function Assignments() {
         assignment={selectedAssignment}
       />
 
+      {/* Add TP Options Modal */}
+      <AddTPOptionsModal
+        open={isOptionsModalOpen}
+        onClose={handleCloseOptionsModal}
+        onCreateNew={handleCreateNew}
+        onJoinExisting={handleJoinExisting}
+      />
+
       {/* Add Assignment Modal */}
       <AddAssignmentModal
         open={isAddModalOpen}
         onClose={handleCloseAddModal}
+        onBack={handleBackToOptions}
         onSave={handleSaveAssignment}
       />
     </Box>

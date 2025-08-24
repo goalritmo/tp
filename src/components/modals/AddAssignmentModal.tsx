@@ -12,7 +12,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
+
   IconButton,
 } from '@mui/material'
 import {
@@ -25,6 +25,7 @@ import {
 interface AddAssignmentModalProps {
   open: boolean
   onClose: () => void
+  onBack: () => void
   onSave: (assignment: {
     name: string
     subject: string
@@ -45,7 +46,7 @@ const mockSubjects = [
   'Ingeniería de Software',
 ]
 
-export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignmentModalProps) {
+export default function AddAssignmentModal({ open, onClose, onBack, onSave }: AddAssignmentModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     subject: '',
@@ -101,15 +102,24 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
   }
 
   const handleClose = () => {
-    setFormData({
-      name: '',
-      subject: '',
-      dueDate: '',
-      description: '',
-    })
-    setErrors({})
-    onClose()
+    if (hasFormContent) {
+      // Si hay contenido, cerrar completamente
+      setFormData({
+        name: '',
+        subject: '',
+        dueDate: '',
+        description: '',
+      })
+      setErrors({})
+      onClose()
+    } else {
+      // Si está vacío, volver al modal anterior
+      onBack()
+    }
   }
+
+  // Verificar si el formulario tiene contenido
+  const hasFormContent = formData.name.trim() || formData.subject || formData.dueDate || formData.description.trim()
 
   return (
     <Dialog
@@ -117,9 +127,8 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
       onClose={handleClose}
       maxWidth="md"
       fullWidth
-      keepMounted
       disableEscapeKeyDown={false}
-      sx={{ zIndex: 10010 }}
+      sx={{ zIndex: 1300 }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -135,18 +144,69 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
 
       <DialogContent sx={{ pt: 2, pb: 0 }}>
         <Box sx={{ mt: 2 }}>
-          {/* Nombre del TP */}
-          <TextField
-            fullWidth
-            label="Nombre del trabajo práctico"
-            placeholder="ej: TP1 - Algoritmos de Ordenamiento"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            error={!!errors.name}
-            helperText={errors.name}
-            sx={{ mb: 3 }}
-            autoFocus
-          />
+          {/* Nombre del TP y Fecha Límite - responsive */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1.5, sm: 2 }, 
+            mb: 2 
+          }}>
+            {/* Nombre del TP - 4/5 del ancho */}
+            <TextField
+              label="Nombre del trabajo práctico"
+              placeholder="ej: TP1 - Algoritmos de Ordenamiento"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              error={!!errors.name}
+              helperText={errors.name}
+              sx={{ flex: { xs: 1, sm: 4 } }}
+              autoFocus
+            />
+
+            {/* Fecha límite - 1/5 del ancho */}
+            <Box sx={{ flex: { xs: 1, sm: 1 }, position: 'relative' }}>
+              <TextField
+                label="Fecha Límite"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                error={!!errors.dueDate}
+                helperText={errors.dueDate}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                inputProps={{
+                  min: new Date().toISOString().split('T')[0],
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <IconButton
+                      size="small"
+                      onClick={() => {
+                        const input = document.querySelector('input[type="date"]') as HTMLInputElement;
+                        if (input) input.showPicker();
+                      }}
+                      sx={{ mr: 1, p: 0.5 }}
+                    >
+                      <CalendarIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+                    </IconButton>
+                  )
+                }}
+                sx={{ 
+                  width: '100%',
+                  '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                    display: 'none',
+                  },
+                  '& input[type="date"]::-webkit-inner-spin-button': {
+                    display: 'none',
+                  },
+                  '& input[type="date"]::-webkit-clear-button': {
+                    display: 'none',
+                  }
+                }}
+              />
+            </Box>
+          </Box>
 
           {/* Materia */}
           <FormControl fullWidth error={!!errors.subject} sx={{ mb: 3 }}>
@@ -156,6 +216,11 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
               label="Materia"
               onChange={(e) => handleInputChange('subject', e.target.value)}
               startAdornment={<SchoolIcon sx={{ mr: 1, color: 'text.secondary' }} />}
+              MenuProps={{
+                PaperProps: {
+                  sx: { zIndex: 1400 }
+                }
+              }}
             >
               {mockSubjects.map((subject) => (
                 <MenuItem key={subject} value={subject}>
@@ -169,26 +234,6 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
               </Typography>
             )}
           </FormControl>
-
-          {/* Fecha límite */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <CalendarIcon sx={{ mr: 1, color: 'text.secondary' }} />
-            <TextField
-              fullWidth
-              label="Fecha límite"
-              type="date"
-              value={formData.dueDate}
-              onChange={(e) => handleInputChange('dueDate', e.target.value)}
-              error={!!errors.dueDate}
-              helperText={errors.dueDate}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              inputProps={{
-                min: new Date().toISOString().split('T')[0],
-              }}
-            />
-          </Box>
 
           {/* Descripción */}
           <TextField
@@ -204,41 +249,16 @@ export default function AddAssignmentModal({ open, onClose, onSave }: AddAssignm
             sx={{ mb: 2 }}
           />
 
-          {/* Información adicional */}
-          <Box sx={{ mt: 3, p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              <strong>Información adicional:</strong>
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip 
-                label="Secciones y ejercicios se pueden agregar después"
-                size="small"
-                variant="outlined"
-                color="primary"
-              />
-              <Chip 
-                label="Links y archivos adjuntos disponibles"
-                size="small"
-                variant="outlined"
-                color="primary"
-              />
-              <Chip 
-                label="Compartir con grupos"
-                size="small"
-                variant="outlined"
-                color="primary"
-              />
-            </Box>
-          </Box>
+
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+      <DialogActions sx={{ px: 3, pt: 2, pb: 3, gap: 1 }}>
         <Button 
           onClick={handleClose} 
           sx={{ textTransform: 'none' }}
         >
-          Cancelar
+          {hasFormContent ? 'Cancelar' : 'Volver'}
         </Button>
         <Button 
           variant="contained" 
