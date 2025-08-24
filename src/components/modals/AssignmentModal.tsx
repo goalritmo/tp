@@ -83,6 +83,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [selectedNoteHistory, setSelectedNoteHistory] = useState<any[]>([])
   const [notes, setNotes] = useState<{ title: string; content: string }[]>([{ title: '', content: '' }])
+  const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set([1, 2, 3]))
   
   // Mock exercises data organized by sections
   const [exerciseSections, setExerciseSections] = useState<{
@@ -395,6 +396,32 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setNotes(prev => prev.filter((_, i) => i !== index))
   }
 
+  const handleToggleExercise = (exerciseId: number) => {
+    setCompletedExercises(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(exerciseId)) {
+        newSet.delete(exerciseId)
+      } else {
+        newSet.add(exerciseId)
+      }
+      return newSet
+    })
+  }
+
+  const calculateProgress = () => {
+    const totalExercises = exerciseSections.reduce((total, section) => total + section.exercises.length, 0)
+    const completedCount = completedExercises.size
+    return totalExercises > 0 ? Math.round((completedCount / totalExercises) * 100) : 0
+  }
+
+  const getCompletedCount = () => {
+    return completedExercises.size
+  }
+
+  const getTotalExercises = () => {
+    return exerciseSections.reduce((total, section) => total + section.exercises.length, 0)
+  }
+
   const handleSaveEdit = () => {
     if (!editData || !editType) return
 
@@ -511,8 +538,8 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <Chip 
-                  label={`${assignment.progress}%`}
-                  color={getProgressColor(assignment.progress)}
+                  label={`${calculateProgress()}%`}
+                  color={getProgressColor(calculateProgress())}
                   size="small"
                 />
                 <Typography variant="body2" color="text.secondary">
@@ -520,12 +547,22 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                 </Typography>
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
-                {assignment.completedExercises} de {assignment.exercises} ejercicios completados
+                {getCompletedCount()} de {getTotalExercises()} ejercicios completados
+                {calculateProgress() === 100 && (
+                  <Box component="span" sx={{ ml: 1, color: 'success.main', fontWeight: 'bold' }}>
+                    ¡Felicitaciones!
+                  </Box>
+                )}
+                {calculateProgress() >= 70 && calculateProgress() < 100 && (
+                  <Box component="span" sx={{ ml: 1, color: 'warning.main', fontWeight: 'bold' }}>
+                    ¡Ya casi!
+                  </Box>
+                )}
               </Typography>
               <LinearProgress 
                 variant="determinate" 
-                value={assignment.progress}
-                color={getProgressColor(assignment.progress)}
+                value={calculateProgress()}
+                color={getProgressColor(calculateProgress())}
                 sx={{ height: 8, borderRadius: 4 }}
               />
             </Box>
@@ -654,6 +691,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                 {section.exercises.map((exercise) => (
                   <Box key={exercise.id}>
                     <Box 
+                      onClick={() => handleToggleExercise(exercise.id)}
                       sx={{ 
                         display: 'flex',
                         alignItems: 'center',
@@ -665,7 +703,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                       }}
                     >
                       <Box sx={{ minWidth: 36, display: 'flex', alignItems: 'center' }}>
-                        {exercise.completed ? (
+                        {completedExercises.has(exercise.id) ? (
                           <CheckCircleIcon color="success" fontSize="small" />
                         ) : (
                           <RadioButtonUncheckedIcon color="action" fontSize="small" />
@@ -675,8 +713,8 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                         <Typography 
                           variant="body1"
                           sx={{
-                            textDecoration: exercise.completed ? 'line-through' : 'none',
-                            color: exercise.completed ? 'text.secondary' : 'text.primary'
+                            textDecoration: completedExercises.has(exercise.id) ? 'line-through' : 'none',
+                            color: completedExercises.has(exercise.id) ? 'text.secondary' : 'text.primary'
                           }}
                         >
                           {exercise.name}
@@ -685,7 +723,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                           <IconButton 
                             size="small" 
                             color="primary"
-                            onClick={() => handleOpenNotes(exercise.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleOpenNotes(exercise.id)
+                            }}
                             sx={{ ml: 0.5 }}
                           >
                             <NoteIcon fontSize="small" />
@@ -695,7 +736,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                       {!isEditing && (
                         <IconButton 
                           size="small" 
-                          onClick={() => toggleExercise(exercise.id)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleExercise(exercise.id)
+                          }}
                           sx={{ ml: 1 }}
                         >
                           {expandedExercises[exercise.id] ? (
