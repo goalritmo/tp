@@ -25,7 +25,7 @@ import {
   Close as CloseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Cancel as CancelIcon,
+
   Save as SaveIcon,
   Add as AddIcon,
   ExpandMore as ExpandMoreIcon,
@@ -33,8 +33,10 @@ import {
   Share as ShareIcon,
   Note as NoteIcon,
   AttachFile as AttachFileIcon,
+  UploadFile as UploadFileIcon,
   Link as LinkIcon,
   Close as CloseAttachmentIcon,
+  Close as CloseLinkIcon,
   Assignment as AssignmentIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
@@ -79,7 +81,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     name: string
     description?: string
     links?: { text: string; url: string }[]
-    attachments?: string[]
+    attachments?: { name: string; url: string }[]
   } | null>(null)
   const [editMode, setEditMode] = useState<'exercise' | 'notes'>('exercise')
   const [showAddSectionModal, setShowAddSectionModal] = useState(false)
@@ -105,7 +107,14 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [originalNoteData, setOriginalNoteData] = useState<{ name: string; description: string } | null>(null)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
+  const [showAddLinkModal, setShowAddLinkModal] = useState(false)
+  const [newLinkData, setNewLinkData] = useState<{ text: string; url: string }>({ text: '', url: '' })
   const [isMoveMode, setIsMoveMode] = useState(false)
+  const [showDeleteExerciseModal, setShowDeleteExerciseModal] = useState(false)
+  const [showDeleteLinkModal, setShowDeleteLinkModal] = useState(false)
+  const [showDeleteAttachmentModal, setShowDeleteAttachmentModal] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'exercise' | 'link' | 'attachment'; id?: number; index?: number; name?: string } | null>(null)
+
   
   // Mock notes data
   const exerciseNotes = {
@@ -140,7 +149,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       completed: boolean
       description: string
       links: { text: string; url: string }[]
-      attachments: string[]
+      attachments: { name: string; url: string }[]
     }[]
   }[]>([
     {
@@ -152,8 +161,15 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           name: 'Ejercicio 1: Análisis de complejidad', 
           completed: true,
           description: 'Analizar la complejidad temporal y espacial de los algoritmos de ordenamiento estudiados en clase. Incluir notación Big O y casos mejor, promedio y peor.',
-          links: [],
-          attachments: ['algoritmos_complejidad.pdf']
+          links: [
+            { text: 'Documentación Big O Notation', url: 'https://en.wikipedia.org/wiki/Big_O_notation' },
+            { text: 'Tutorial de Algoritmos', url: 'https://www.geeksforgeeks.org/sorting-algorithms/' }
+          ],
+          attachments: [
+            { name: 'algoritmos_complejidad.pdf', url: 'https://supabase.com/storage/v1/object/public/files/algoritmos_complejidad.pdf' },
+            { name: 'ejemplos_implementacion.pdf', url: 'https://supabase.com/storage/v1/object/public/files/ejemplos_implementacion.pdf' },
+            { name: 'casos_prueba.pdf', url: 'https://supabase.com/storage/v1/object/public/files/casos_prueba.pdf' }
+          ]
         },
         { 
           id: 2, 
@@ -251,6 +267,10 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     }
     setIsMoveMode(!isMoveMode)
   }
+
+
+
+
 
   const handleMoveSection = (sectionId: string, direction: 'up' | 'down') => {
     setExerciseSections(prev => {
@@ -356,7 +376,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     }
   }
 
-  const handleSaveExercise = (exerciseId: number, newName: string, newDescription: string, links?: { text: string; url: string }[], attachments?: string[]) => {
+  const handleSaveExercise = (exerciseId: number, newName: string, newDescription: string, links?: { text: string; url: string }[], attachments?: { name: string; url: string }[]) => {
     setExerciseSections(prev => prev.map(section => ({
       ...section,
       exercises: section.exercises.map(exercise => 
@@ -568,6 +588,25 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
     setShowNotesDialog(true)
   }
 
+  const handleCloseAddLink = () => {
+    setShowAddLinkModal(false)
+    setNewLinkData({ text: '', url: '' })
+  }
+
+  const handleSaveAddLink = () => {
+    if (newLinkData.url.trim()) {
+      const newLink = {
+        text: newLinkData.text.trim() || newLinkData.url.trim(),
+        url: newLinkData.url.trim()
+      }
+      setEditData(prev => prev ? {
+        ...prev,
+        links: [...(prev.links || []), newLink]
+      } : null)
+      handleCloseAddLink()
+    }
+  }
+
   const handleSaveAddNote = () => {
     if (editData && editData.name.trim()) {
       setNotes(prev => [...prev, { 
@@ -638,19 +677,76 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files
     if (files && editData) {
-      const fileNames = Array.from(files).map(file => file.name)
+      const newAttachments = Array.from(files).map(file => ({
+        name: file.name,
+        url: `https://supabase.com/storage/v1/object/public/files/${file.name}`
+      }))
       setEditData(prev => prev ? {
         ...prev,
-        attachments: [...(prev.attachments || []), ...fileNames]
+        attachments: [...(prev.attachments || []), ...newAttachments]
       } : null)
     }
   }
 
   const handleRemoveAttachment = (index: number) => {
-    setEditData(prev => prev ? {
-      ...prev,
-      attachments: prev.attachments?.filter((_, i) => i !== index) || []
-    } : null)
+                const attachment = editData?.attachments?.[index]
+            if (attachment) {
+              setItemToDelete({ type: 'attachment', index, name: attachment.name })
+      setShowDeleteAttachmentModal(true)
+    }
+  }
+
+  const handleDeleteExercise = () => {
+    if (editData) {
+      setItemToDelete({ type: 'exercise', id: editData.id as number, name: editData.name })
+      setShowDeleteExerciseModal(true)
+    }
+  }
+
+  const handleDeleteLink = (index: number) => {
+    const link = editData?.links?.[index]
+    if (link) {
+      setItemToDelete({ type: 'link', index, name: link.text || link.url })
+      setShowDeleteLinkModal(true)
+    }
+  }
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return
+
+    switch (itemToDelete.type) {
+      case 'exercise':
+        console.log('Delete exercise:', itemToDelete.id)
+        handleCloseEditModal()
+        break
+      case 'link':
+        if (itemToDelete.index !== undefined) {
+          const newLinks = editData?.links?.filter((_, i) => i !== itemToDelete.index) || []
+          setEditData(prev => prev ? { ...prev, links: newLinks } : null)
+        }
+        break
+      case 'attachment':
+        if (itemToDelete.index !== undefined) {
+          setEditData(prev => prev ? {
+            ...prev,
+            attachments: prev.attachments?.filter((_, i) => i !== itemToDelete.index) || []
+          } : null)
+        }
+        break
+    }
+
+    // Close all modals
+    setShowDeleteExerciseModal(false)
+    setShowDeleteLinkModal(false)
+    setShowDeleteAttachmentModal(false)
+    setItemToDelete(null)
+  }
+
+  const handleCancelDelete = () => {
+    setShowDeleteExerciseModal(false)
+    setShowDeleteLinkModal(false)
+    setShowDeleteAttachmentModal(false)
+    setItemToDelete(null)
   }
 
   return (
@@ -812,14 +908,16 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           </Typography>
           {isEditing && (
             <>
+              {(
+                <IconButton size="small" color="primary" onClick={handleToggleMoveMode}>
+                  <SwapVertIcon fontSize="small" />
+                </IconButton>
+              )}
               {!isMoveMode && (
                 <IconButton size="small" color="primary" onClick={handleOpenAddSection}>
                   <AddIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton size="small" color="primary" onClick={handleToggleMoveMode}>
-                <SwapVertIcon fontSize="small" />
-              </IconButton>
             </>
           )}
         </Box>
@@ -863,6 +961,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
               >
                 {section.name}
               </Typography>
+
               {!isEditing && !expandedSections[section.id] && (
                 <IconButton 
                   size="small" 
@@ -1053,9 +1152,17 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           <>
             <Button
               variant="outlined"
-              startIcon={<CancelIcon />}
               onClick={handleCancelEdit}
-              sx={{ textTransform: 'none' }}
+              sx={{ 
+                textTransform: 'none',
+                color: 'primary.main',
+                borderColor: 'primary.main',
+                backgroundColor: 'transparent',
+                '&:hover': { 
+                  backgroundColor: 'primary.100',
+                  color: 'primary.main'
+                }
+              }}
             >
               Cancelar
             </Button>
@@ -1275,7 +1382,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                   <RadioButtonUncheckedIcon color="action" fontSize="small" />
                 )}
                 <Typography variant="body2" color={shareOptions.shareNotes ? 'text.primary' : 'text.secondary'}>
-                  Compartir notas vinculadas a ejercicios
+                  Compartir notas vinculadas a secciones y ejercicios
                 </Typography>
               </Box>
             </Box>
@@ -1330,11 +1437,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             <IconButton
               color="error"
               size="small"
-              onClick={() => {
-                // Mock function for deleting exercise
-                console.log('Delete exercise:', editData?.id)
-                handleCloseEditModal()
-              }}
+              onClick={handleDeleteExercise}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
@@ -1348,7 +1451,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                 label="Nombre"
                 value={editData?.name || ''}
                 onChange={(e) => setEditData(prev => prev ? { ...prev, name: e.target.value } : null)}
-                sx={{ mb: 0 }}
+                sx={{ mb: 2 }}
               />
             )}
             
@@ -1368,45 +1471,94 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <LinkIcon fontSize="small" />
-                    Enlace de referencia
+                    Links
                   </Typography>
-                  <TextField
-                    fullWidth
-                    label="Texto del enlace"
-                    placeholder="ej: Documentación oficial"
-                    value={editData?.links?.[0]?.text || ''}
-                    onChange={(e) => setEditData(prev => prev ? { 
-                      ...prev, 
-                      links: [{ text: e.target.value, url: prev.links?.[0]?.url || '' }]
-                    } : null)}
-                    sx={{ mb: 1 }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="URL"
-                    placeholder="https://..."
-                    value={editData?.links?.[0]?.url || ''}
-                    onChange={(e) => setEditData(prev => prev ? { 
-                      ...prev, 
-                      links: [{ text: prev.links?.[0]?.text || '', url: e.target.value }]
-                    } : null)}
-                  />
+                  
+                  {editData?.links && editData.links.length > 0 && (
+                    <Box sx={{ mb: 2 }}>
+                      {editData.links.map((link, index) => (
+                        <Box 
+                          key={index} 
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'space-between',
+                            mb: 1,
+                            p: 1,
+                            borderRadius: 1,
+                            backgroundColor: 'action.hover',
+                            '&:hover': { backgroundColor: 'action.selected' }
+                          }}
+                        >
+                          <Typography
+                            component="a"
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ 
+                              color: 'primary.main',
+                              textDecoration: 'none',
+                              cursor: 'pointer',
+                              '&:hover': { textDecoration: 'underline' }
+                            }}
+                          >
+                            {link.text || link.url}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            sx={{ color: 'text.secondary' }}
+                            onClick={() => handleDeleteLink(index)}
+                          >
+                            <CloseLinkIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                  
+                  <Button
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    size="small"
+                    sx={{ textTransform: 'none' }}
+                    onClick={() => {
+                      setShowAddLinkModal(true)
+                    }}
+                  >
+                    Agregar Link
+                  </Button>
                 </Box>
 
                 {/* Attachments Section */}
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <AttachFileIcon fontSize="small" />
                     Archivos adjuntos
                   </Typography>
                   
+                  {editData?.attachments && editData.attachments.length > 0 && (
+                    <Box sx={{ mb: 1 }}>
+                      {editData.attachments.map((attachment, index) => (
+                        <Chip
+                          key={index}
+                          label={attachment.name}
+                          onClick={() => window.open(attachment.url, '_blank')}
+                          onDelete={() => handleRemoveAttachment(index)}
+                          deleteIcon={<CloseAttachmentIcon />}
+                          sx={{ mr: 1, mb: 1, cursor: 'pointer' }}
+                          size="small"
+                        />
+                      ))}
+                    </Box>
+                  )}
+
                   <Button
                     variant="outlined"
                     component="label"
-                    startIcon={<AttachFileIcon />}
-                    sx={{ mb: 2, textTransform: 'none' }}
+                    startIcon={<UploadFileIcon />}
+                    sx={{ textTransform: 'none' }}
                   >
-                    Adjuntar
+                    Subir Archivo
                     <input
                       type="file"
                       hidden
@@ -1415,21 +1567,6 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                       onChange={handleFileUpload}
                     />
                   </Button>
-
-                  {editData?.attachments && editData.attachments.length > 0 && (
-                    <Box>
-                      {editData.attachments.map((fileName, index) => (
-                        <Chip
-                          key={index}
-                          label={fileName}
-                          onDelete={() => handleRemoveAttachment(index)}
-                          deleteIcon={<CloseAttachmentIcon />}
-                          sx={{ mr: 1, mb: 1 }}
-                          size="small"
-                        />
-                      ))}
-                    </Box>
-                  )}
                 </Box>
               </>
             )}
@@ -1458,7 +1595,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, pr: 3, pb: 3 }}>
+        <DialogActions sx={{ px: 3, py: 0, pr: 3, pb: 3 }}>
           <Button onClick={editMode === 'notes' && editingNoteIndex !== null ? handleBackToNotes : handleCloseEditModal} sx={{ textTransform: 'none' }}>
             {editMode === 'notes' && editingNoteIndex !== null 
               ? ((editData?.name?.trim() !== originalNoteData?.name?.trim() || editData?.description?.trim() !== originalNoteData?.description?.trim()) ? 'Cancelar' : 'Volver')
@@ -1471,6 +1608,56 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             sx={{ textTransform: 'none' }}
           >
             Guardar Cambios
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Link Modal */}
+      <Dialog 
+        open={showAddLinkModal} 
+        onClose={handleCloseAddLink}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10004 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AddIcon color="primary" />
+          <Typography variant="h6">
+            Agregar Link
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 0 }}>
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="URL"
+              placeholder="https://..."
+              value={newLinkData.url}
+              onChange={(e) => setNewLinkData(prev => ({ ...prev, url: e.target.value }))}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              label="Texto del enlace (opcional)"
+              placeholder="ej: Documentación oficial"
+              value={newLinkData.text}
+              onChange={(e) => setNewLinkData(prev => ({ ...prev, text: e.target.value }))}
+              sx={{ mb: 0 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 1, pt: 2, pb: 2 }}>
+          <Button onClick={handleCloseAddLink} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSaveAddLink}
+            sx={{ textTransform: 'none' }}
+          >
+            Agregar
           </Button>
         </DialogActions>
       </Dialog>
@@ -1663,6 +1850,114 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             sx={{ textTransform: 'none' }}
           >
             Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Exercise Confirmation Modal */}
+      <Dialog 
+        open={showDeleteExerciseModal} 
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10007 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 3 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6">
+            Eliminar Ejercicio
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 0 }}>
+          <Typography>
+            ¿Estás seguro de que quieres eliminar el ejercicio <strong>"{itemToDelete?.name}"</strong>? Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 1, pr: 3, pb: 3 }}>
+          <Button onClick={handleCancelDelete} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleConfirmDelete}
+            sx={{ textTransform: 'none' }}
+          >
+            Eliminar Ejercicio
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Link Confirmation Modal */}
+      <Dialog 
+        open={showDeleteLinkModal} 
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10007 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 3 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6">
+            Eliminar Link
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 0 }}>
+          <Typography>
+            ¿Estás seguro de que quieres eliminar el link <strong>"{itemToDelete?.name}"</strong>? Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 1, pr: 3, pb: 3 }}>
+          <Button onClick={handleCancelDelete} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleConfirmDelete}
+            sx={{ textTransform: 'none' }}
+          >
+            Eliminar Link
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Attachment Confirmation Modal */}
+      <Dialog 
+        open={showDeleteAttachmentModal} 
+        onClose={handleCancelDelete}
+        maxWidth="sm"
+        fullWidth
+        keepMounted
+        disableEscapeKeyDown={false}
+        sx={{ zIndex: 10007 }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 3 }}>
+          <DeleteIcon color="error" />
+          <Typography variant="h6">
+            Eliminar Archivo
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 0 }}>
+          <Typography>
+            ¿Estás seguro de que quieres eliminar el archivo <strong>"{itemToDelete?.name}"</strong>? Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 1, pr: 3, pb: 3 }}>
+          <Button onClick={handleCancelDelete} sx={{ textTransform: 'none' }}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            color="error"
+            onClick={handleConfirmDelete}
+            sx={{ textTransform: 'none' }}
+          >
+            Eliminar Archivo
           </Button>
         </DialogActions>
       </Dialog>
