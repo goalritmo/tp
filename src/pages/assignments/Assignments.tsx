@@ -80,10 +80,7 @@ export default function Assignments() {
     setIsOptionsModalOpen(false)
   }
 
-  const handleCreateNew = () => {
-    setIsOptionsModalOpen(false)
-    setIsAddModalOpen(true)
-  }
+
 
   const handleBackToOptions = () => {
     setIsAddModalOpen(false)
@@ -259,7 +256,6 @@ export default function Assignments() {
       <AddTPOptionsModal
         open={isOptionsModalOpen}
         onClose={handleCloseOptionsModal}
-        onCreateNew={handleCreateNew}
         onJoinExisting={handleJoinExisting}
       />
 

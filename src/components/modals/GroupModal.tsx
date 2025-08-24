@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import AddTPOptionsModal from './AddTPOptionsModal'
-import AddAssignmentModal from './AddAssignmentModal'
 import {
   Dialog,
   DialogTitle,
@@ -65,7 +64,6 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [selectedTP, setSelectedTP] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<number | null>(null)
   const [showAddTPModal, setShowAddTPModal] = useState(false)
-  const [showCreateTPModal, setShowCreateTPModal] = useState(false)
   const [groupTPs, setGroupTPs] = useState([
     'TP 1 - Algoritmos de Ordenamiento',
     'TP 2 - Estructuras de Datos'
@@ -114,7 +112,6 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setShowCodeModal(false)
     setShowMemberModal(false)
     setShowAddTPModal(false)
-    setShowCreateTPModal(false)
     setSelectedMemberForModal(null)
     setSelectedTP(null)
     onClose()
@@ -166,22 +163,6 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
 
   const handleCloseAddTPModal = () => {
     setShowAddTPModal(false)
-  }
-
-  const handleCreateTPFromScratch = () => {
-    setShowAddTPModal(false)
-    setShowCreateTPModal(true)
-  }
-
-  const handleCloseCreateTPModal = () => {
-    setShowCreateTPModal(false)
-  }
-
-  const handleCreateTP = (tpData: any) => {
-    // Crear TP desde cero y agregarlo al grupo
-    const newTPName = `TP ${groupTPs.length + 1} - ${tpData.name}`
-    setGroupTPs(prev => [...prev, newTPName])
-    setShowCreateTPModal(false)
   }
 
   const handleJoinTP = (tpCode: string) => {
@@ -1022,16 +1003,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       <AddTPOptionsModal
         open={showAddTPModal}
         onClose={handleCloseAddTPModal}
-        onCreateNew={handleCreateTPFromScratch}
         onJoinExisting={handleJoinTP}
-      />
-
-      {/* Create TP Modal */}
-      <AddAssignmentModal
-        open={showCreateTPModal}
-        onClose={handleCloseCreateTPModal}
-        onBack={handleCloseCreateTPModal}
-        onSave={handleCreateTP}
       />
     </Dialog>
   )
