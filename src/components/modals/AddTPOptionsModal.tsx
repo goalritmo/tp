@@ -13,6 +13,7 @@ import {
   Close as CloseIcon,
   Add as AddIcon,
   Code as CodeIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material'
 
 interface AddTPOptionsModalProps {
@@ -97,19 +98,20 @@ export default function AddTPOptionsModal({
             </Typography>
           </Box>
 
-          {/* Unirse a TP existente */}
+          {/* Agregar TP existente */}
           <Box
             sx={{
               border: '2px solid',
               borderColor: 'grey.300',
               borderRadius: 2,
               p: 3,
+              mb: 3,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <CodeIcon color="action" sx={{ fontSize: 32 }} />
               <Typography variant="h6" color="text.primary">
-                Unirse a TP existente
+                Agregar TP existente
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -133,9 +135,31 @@ export default function AddTPOptionsModal({
                 disabled={!tpCode.trim()}
                 sx={{ textTransform: 'none', minWidth: 100 }}
               >
-                Unirse
+                Agregar
               </Button>
             </Box>
+          </Box>
+
+          {/* Info sobre TPs oficiales */}
+          <Box
+            sx={{
+              border: '1px solid',
+              borderColor: 'info.main',
+              borderRadius: 2,
+              p: 2,
+              bgcolor: 'info.50',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <InfoIcon color="info" fontSize="small" />
+              <Typography variant="body2" color="info.main" sx={{ fontWeight: 500 }}>
+                TPs oficiales disponibles:
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
+              ALGO1TP0<br />
+              ALGO1TP1
+            </Typography>
           </Box>
         </Box>
       </DialogContent>
