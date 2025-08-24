@@ -14,7 +14,6 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemButton,
   ListItemText,
   ListItemIcon,
   Avatar,
@@ -67,8 +66,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [showShareDialog, setShowShareDialog] = useState(false)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null)
-  const [editingExercise, setEditingExercise] = useState<number | null>(null)
-  const [editingSection, setEditingSection] = useState<string | null>(null)
+
   const [showEditModal, setShowEditModal] = useState(false)
   const [editType, setEditType] = useState<'section' | 'exercise' | null>(null)
   const [editData, setEditData] = useState<{
@@ -306,7 +304,6 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           : exercise
       )
     })))
-    setEditingExercise(null)
   }
 
   const handleSaveSection = (sectionId: string, newName: string) => {
@@ -315,12 +312,6 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
         ? { ...section, name: newName }
         : section
     ))
-    setEditingSection(null)
-  }
-
-  const handleCancelItemEdit = () => {
-    setEditingExercise(null)
-    setEditingSection(null)
   }
 
   const handleCloseEditModal = () => {
