@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import AddTPOptionsModal from './AddTPOptionsModal'
+import AddAssignmentModal from './AddAssignmentModal'
 import {
   Dialog,
   DialogTitle,
@@ -64,12 +65,14 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [selectedTP, setSelectedTP] = useState<string | null>(null)
   const [selectedMember, setSelectedMember] = useState<number | null>(null)
   const [showAddTPModal, setShowAddTPModal] = useState(false)
+  const [showCreateTPModal, setShowCreateTPModal] = useState(false)
   const [groupTPs, setGroupTPs] = useState([
     'TP 1 - Algoritmos de Ordenamiento',
     'TP 2 - Estructuras de Datos'
   ])
   const [groupCode, setGroupCode] = useState('GRP-ABC123')
   const [isEditingCode, setIsEditingCode] = useState(false)
+  const [isAdmin] = useState(true) // TODO: Esto debería venir del contexto de autenticación
   
   if (!group) return null
 
@@ -114,6 +117,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setShowCodeModal(false)
     setShowMemberModal(false)
     setShowAddTPModal(false)
+    setShowCreateTPModal(false)
     setIsEditingCode(false)
     setGroupCode('GRP-ABC123')
     setSelectedMemberForModal(null)
@@ -174,6 +178,22 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     const newTPName = `TP ${groupTPs.length + 1} - TP Existente (${tpCode})`
     setGroupTPs(prev => [...prev, newTPName])
     setShowAddTPModal(false)
+  }
+
+  const handleCreateTPFromScratch = () => {
+    setShowAddTPModal(false)
+    setShowCreateTPModal(true)
+  }
+
+  const handleCloseCreateTPModal = () => {
+    setShowCreateTPModal(false)
+  }
+
+  const handleCreateTP = (tpData: any) => {
+    // Crear TP desde cero y agregarlo al grupo
+    const newTPName = `TP ${groupTPs.length + 1} - ${tpData.name}`
+    setGroupTPs(prev => [...prev, newTPName])
+    setShowCreateTPModal(false)
   }
 
   const handleEditCode = () => {
@@ -294,6 +314,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       onClose={handleCloseModal}
       maxWidth="md"
       fullWidth
+      sx={{ zIndex: 15000 }}
       PaperProps={{
         sx: {
           borderRadius: 2,
@@ -1096,7 +1117,17 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       <AddTPOptionsModal
         open={showAddTPModal}
         onClose={handleCloseAddTPModal}
+        onCreateNew={handleCreateTPFromScratch}
         onJoinExisting={handleJoinTP}
+        isAdmin={isAdmin}
+      />
+
+      {/* Create TP Modal */}
+      <AddAssignmentModal
+        open={showCreateTPModal}
+        onClose={handleCloseCreateTPModal}
+        onBack={handleCloseCreateTPModal}
+        onSave={handleCreateTP}
       />
     </Dialog>
   )

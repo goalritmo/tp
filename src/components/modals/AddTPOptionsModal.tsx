@@ -19,13 +19,17 @@ import {
 interface AddTPOptionsModalProps {
   open: boolean
   onClose: () => void
+  onCreateNew?: () => void
   onJoinExisting: (code: string) => void
+  isAdmin?: boolean
 }
 
 export default function AddTPOptionsModal({
   open,
   onClose,
+  onCreateNew,
   onJoinExisting,
+  isAdmin = false,
 }: AddTPOptionsModalProps) {
   const [tpCode, setTpCode] = useState('')
 
@@ -48,7 +52,7 @@ export default function AddTPOptionsModal({
       maxWidth="sm"
       fullWidth
       disableEscapeKeyDown={false}
-      sx={{ zIndex: 1300 }}
+      sx={{ zIndex: 9999 }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -64,11 +68,45 @@ export default function AddTPOptionsModal({
 
       <DialogContent sx={{ pt: 2, pb: 3 }}>
         <Box sx={{ mt: 2 }}>
+          <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+            ¿Qué te gustaría hacer?
+          </Typography>
+
+          {/* Crear nuevo TP - Solo para administradores */}
+          {isAdmin && onCreateNew && (
+            <Box
+              sx={{
+                border: '2px solid',
+                borderColor: 'primary.main',
+                borderRadius: 2,
+                p: 3,
+                mb: 3,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: 'primary.50',
+                  borderColor: 'primary.dark',
+                },
+              }}
+              onClick={onCreateNew}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                <AddIcon color="primary" sx={{ fontSize: 32 }} />
+                <Typography variant="h6" color="primary">
+                  Crear nuevo TP
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Crea un trabajo práctico desde cero con tus propias secciones y ejercicios
+              </Typography>
+            </Box>
+          )}
+
           {/* Agregar TP existente */}
           <Box
             sx={{
               border: '2px solid',
-              borderColor: 'primary.main',
+              borderColor: isAdmin ? 'grey.300' : 'primary.main',
               borderRadius: 2,
               p: 3,
               mb: 3,

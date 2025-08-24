@@ -113,7 +113,7 @@ export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGrou
       maxWidth="md"
       fullWidth
       disableEscapeKeyDown={false}
-      sx={{ zIndex: 1300 }}
+      sx={{ zIndex: 15000 }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
