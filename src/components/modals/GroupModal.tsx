@@ -68,6 +68,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     'TP 1 - Algoritmos de Ordenamiento',
     'TP 2 - Estructuras de Datos'
   ])
+  const [groupCode, setGroupCode] = useState('GRP-ABC123')
+  const [isEditingCode, setIsEditingCode] = useState(false)
   
   if (!group) return null
 
@@ -112,6 +114,8 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     setShowCodeModal(false)
     setShowMemberModal(false)
     setShowAddTPModal(false)
+    setIsEditingCode(false)
+    setGroupCode('GRP-ABC123')
     setSelectedMemberForModal(null)
     setSelectedTP(null)
     onClose()
@@ -170,6 +174,21 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
     const newTPName = `TP ${groupTPs.length + 1} - TP Existente (${tpCode})`
     setGroupTPs(prev => [...prev, newTPName])
     setShowAddTPModal(false)
+  }
+
+  const handleEditCode = () => {
+    setIsEditingCode(true)
+  }
+
+  const handleSaveCode = () => {
+    setIsEditingCode(false)
+    // Aquí se guardaría el nuevo código en el backend
+    console.log('Nuevo código guardado:', groupCode)
+  }
+
+  const handleCancelEditCode = () => {
+    setGroupCode('GRP-ABC123') // Restaurar código original
+    setIsEditingCode(false)
   }
 
   // Mock data for TP sections and exercises
@@ -749,63 +768,120 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
 
         <Divider />
 
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography variant="body1" sx={{ mb: 2 }}>
+        <DialogContent sx={{ pt: 1, pb: 1 }}>
+          <Typography variant="body1" sx={{ mb: 1, mt: 1 }}>
             Comparte este código con tus amigos para que se unan al grupo:
           </Typography>
           
-          <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <TextField
-              value="GRP-ABC123"
+              value={groupCode}
               fullWidth
               variant="outlined"
               size="small"
-              InputProps={{
-                readOnly: true,
-                sx: { 
+              disabled={!isEditingCode}
+              onChange={(e) => setGroupCode(e.target.value)}
+                            sx={{
+                mt: 2,
+                '& .MuiOutlinedInput-root': {
+                  height: '36px',
+                  '& fieldset': {
+                    borderColor: 'divider',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                },
+                '& .MuiInputBase-input': {
                   fontFamily: 'monospace',
                   fontSize: '1.1rem',
                   fontWeight: 'bold',
-                  letterSpacing: '0.1em'
+                  letterSpacing: '0.1em',
+                  padding: '6px 12px',
+                  height: '24px',
+                  display: 'flex',
+                  alignItems: 'center'
                 }
               }}
             />
-            <IconButton 
-              color="primary" 
-              onClick={handleCopyCode}
-              sx={{ 
-                bgcolor: 'transparent',
-                color: 'primary.main',
-                border: '1px solid',
-                borderColor: 'primary.main',
-                '&:hover': { 
-                  bgcolor: 'primary.main',
-                  color: 'white'
-                }
-              }}
-            >
-              <ContentCopyIcon />
-            </IconButton>
-            <IconButton 
-              color="primary" 
-              onClick={() => console.log('Editar código')}
-              sx={{ 
-                bgcolor: 'transparent',
-                color: 'primary.main',
-                border: '1px solid',
-                borderColor: 'primary.main',
-                '&:hover': { 
-                  bgcolor: 'primary.main',
-                  color: 'white'
-                }
-              }}
-            >
-              <EditIcon />
-            </IconButton>
+            {!isEditingCode ? (
+              <>
+                <IconButton 
+                  color="primary" 
+                  onClick={handleEditCode}
+                  sx={{ 
+                    bgcolor: 'transparent',
+                    color: 'primary.main',
+                    height: '36px',
+                    width: '36px',
+                    '&:hover': { 
+                      bgcolor: 'primary.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton 
+                  color="primary" 
+                  onClick={handleCopyCode}
+                  sx={{ 
+                    bgcolor: 'transparent',
+                    color: 'primary.main',
+                    height: '36px',
+                    width: '36px',
+                    '&:hover': { 
+                      bgcolor: 'primary.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <ContentCopyIcon />
+                </IconButton>
+              </>
+            ) : (
+              <>
+                <IconButton 
+                  color="primary" 
+                  onClick={handleCancelEditCode}
+                  sx={{ 
+                    bgcolor: 'transparent',
+                    color: 'primary.main',
+                    height: '36px',
+                    width: '36px',
+                    '&:hover': { 
+                      bgcolor: 'primary.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
+                <IconButton 
+                  color="success" 
+                  onClick={handleSaveCode}
+                  sx={{ 
+                    bgcolor: 'transparent',
+                    color: 'success.main',
+                    height: '36px',
+                    width: '36px',
+                    '&:hover': { 
+                      bgcolor: 'success.main',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  <SaveIcon />
+                </IconButton>
+              </>
+            )}
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1, justifyContent: 'center' }}>
           <Button
             variant="contained"
             onClick={handleCloseCodeModal}
