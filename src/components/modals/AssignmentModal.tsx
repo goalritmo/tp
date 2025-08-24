@@ -41,6 +41,10 @@ import {
   CalendarToday as CalendarIcon,
   School as SchoolIcon,
   History as HistoryIcon,
+
+  KeyboardArrowUp as KeyboardArrowUpIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  SwapVert as SwapVertIcon,
 } from '@mui/icons-material'
 
 interface Assignment {
@@ -101,6 +105,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
   const [originalNoteData, setOriginalNoteData] = useState<{ name: string; description: string } | null>(null)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [noteToDelete, setNoteToDelete] = useState<number | null>(null)
+  const [isMoveMode, setIsMoveMode] = useState(false)
   
   // Mock notes data
   const exerciseNotes = {
@@ -236,6 +241,32 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
 
   const handleCancelEdit = () => {
     setIsEditing(false)
+    setIsMoveMode(false)
+  }
+
+  const handleToggleMoveMode = () => {
+    if (!isMoveMode) {
+      // Al activar el modo de mover, plegar todas las secciones
+      setExpandedSections({})
+    }
+    setIsMoveMode(!isMoveMode)
+  }
+
+  const handleMoveSection = (sectionId: string, direction: 'up' | 'down') => {
+    setExerciseSections(prev => {
+      const currentIndex = prev.findIndex(section => section.id === sectionId)
+      if (currentIndex === -1) return prev
+
+      const newSections = [...prev]
+      if (direction === 'up' && currentIndex > 0) {
+        // Mover hacia arriba
+        [newSections[currentIndex], newSections[currentIndex - 1]] = [newSections[currentIndex - 1], newSections[currentIndex]]
+      } else if (direction === 'down' && currentIndex < newSections.length - 1) {
+        // Mover hacia abajo
+        [newSections[currentIndex], newSections[currentIndex + 1]] = [newSections[currentIndex + 1], newSections[currentIndex]]
+      }
+      return newSections
+    })
   }
 
   const handleSaveChanges = () => {
@@ -252,6 +283,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
 
   const handleCloseModal = () => {
     setIsEditing(false)
+    setIsMoveMode(false)
     setExpandedSections({})
     setExpandedExercises({})
     onClose()
@@ -779,9 +811,16 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
             Secciones
           </Typography>
           {isEditing && (
-            <IconButton size="small" color="primary" onClick={handleOpenAddSection}>
-              <AddIcon fontSize="small" />
-            </IconButton>
+            <>
+              {!isMoveMode && (
+                <IconButton size="small" color="primary" onClick={handleOpenAddSection}>
+                  <AddIcon fontSize="small" />
+                </IconButton>
+              )}
+              <IconButton size="small" color="primary" onClick={handleToggleMoveMode}>
+                <SwapVertIcon fontSize="small" />
+              </IconButton>
+            </>
           )}
         </Box>
         
@@ -796,21 +835,23 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
           >
             {/* Section Header */}
             <Box 
-              onClick={() => toggleSection(section.id)}
+              onClick={!isMoveMode ? () => toggleSection(section.id) : undefined}
               sx={{ 
                 display: 'flex',
                 alignItems: 'center',
                 px: 2, 
                 py: 1, 
                 borderRadius: 1,
-                cursor: 'pointer'
+                cursor: isMoveMode ? 'default' : 'pointer'
               }}
             >
               <Box sx={{ minWidth: 36, display: 'flex', alignItems: 'center' }}>
-                {expandedSections[section.id] ? (
-                  <ExpandLessIcon color="primary" />
-                ) : (
-                  <ExpandMoreIcon color="primary" />
+                {!isMoveMode && (
+                  expandedSections[section.id] ? (
+                    <ExpandLessIcon color="primary" />
+                  ) : (
+                    <ExpandMoreIcon color="primary" />
+                  )
                 )}
               </Box>
               <Typography 
@@ -835,7 +876,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                   <NoteIcon fontSize="small" />
                 </IconButton>
               )}
-              {isEditing && !expandedSections[section.id] && (
+              {isEditing && !expandedSections[section.id] && !isMoveMode && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
                   <IconButton 
                     size="small" 
@@ -856,6 +897,32 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
                     }}
                   >
                     <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              )}
+              {isEditing && isMoveMode && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
+                  <IconButton 
+                    size="small" 
+                    color="primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleMoveSection(section.id, 'up')
+                    }}
+                    disabled={exerciseSections.indexOf(section) === 0}
+                  >
+                    <KeyboardArrowUpIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton 
+                    size="small" 
+                    color="primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleMoveSection(section.id, 'down')
+                    }}
+                    disabled={exerciseSections.indexOf(section) === exerciseSections.length - 1}
+                  >
+                    <KeyboardArrowDownIcon fontSize="small" />
                   </IconButton>
                 </Box>
               )}
@@ -981,7 +1048,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       <Divider />
 
       {/* Actions */}
-      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+      <DialogActions sx={{ px: 4, py: 3, gap: 1 }}>
         {isEditing ? (
           <>
             <Button
