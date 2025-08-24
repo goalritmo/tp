@@ -251,7 +251,7 @@ export default function AddGroupModal({ open, onClose, onBack, onSave }: AddGrou
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pt: 2, pb: 3, gap: 1 }}>
+      <DialogActions sx={{ px: 3, pt: 2, pb: 3, gap: 1, justifyContent: 'center' }}>
         <Button 
           onClick={handleClose} 
           sx={{ textTransform: 'none' }}

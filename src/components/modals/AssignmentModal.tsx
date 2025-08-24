@@ -1160,7 +1160,7 @@ export default function AssignmentModal({ open, onClose, assignment }: Assignmen
       <Divider />
 
       {/* Actions */}
-      <DialogActions sx={{ px: 4, py: 3, gap: 1 }}>
+      <DialogActions sx={{ px: 4, py: 3, gap: 1, justifyContent: 'center' }}>
         {isEditing ? (
           <>
             <Button

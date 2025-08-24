@@ -207,7 +207,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
       <Divider />
 
       {/* Actions */}
-      <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
         {showDelete && (
           <Button
             variant="outlined"
