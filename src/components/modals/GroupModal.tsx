@@ -9,6 +9,7 @@ import {
   Box,
   Chip,
   Avatar,
+  AvatarGroup,
   IconButton,
   Divider,
   List,
@@ -16,6 +17,7 @@ import {
   ListItemText,
   ListItemAvatar,
   LinearProgress,
+  TextField,
 } from '@mui/material'
 import {
   Close as CloseIcon,
@@ -26,6 +28,8 @@ import {
   Assignment as AssignmentIcon,
   Person as PersonIcon,
   Lock as LockIcon,
+  Add as AddIcon,
+  ContentCopy as ContentCopyIcon,
 } from '@mui/icons-material'
 
 interface GroupMember {
@@ -53,6 +57,7 @@ interface GroupModalProps {
 
 export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   const [showDelete, setShowDelete] = useState(false)
+  const [showCodeModal, setShowCodeModal] = useState(false)
   
   if (!group) return null
 
@@ -74,7 +79,21 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
 
   const handleCloseModal = () => {
     setShowDelete(false)
+    setShowCodeModal(false)
     onClose()
+  }
+
+  const handleOpenCodeModal = () => {
+    setShowCodeModal(true)
+  }
+
+  const handleCloseCodeModal = () => {
+    setShowCodeModal(false)
+  }
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText('GRP-ABC123')
+    // Aquí se podría mostrar un snackbar de confirmación
   }
 
   return (
@@ -125,82 +144,220 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
             <Chip 
               label="Privado"
               size="small"
-              color="secondary"
+              color="default"
               variant="outlined"
-              icon={<LockIcon />}
-              sx={{ fontSize: '0.7rem', height: 20 }}
+              icon={<LockIcon sx={{ fontSize: '0.9rem' }} />}
+              sx={{ 
+                fontSize: '0.7rem', 
+                height: 20,
+                borderColor: 'text.primary',
+                color: 'text.primary',
+                '& .MuiChip-icon': {
+                  fontSize: '0.9rem !important',
+                  paddingLeft: '4px',
+                  color: 'text.primary'
+                },
+                '& .MuiChip-label': {
+                  paddingLeft: '6px',
+                  color: 'text.primary'
+                }
+              }}
             />
           </Box>
 
-          {/* Progress Section */}
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Progreso del grupo
+          {/* Active Assignments */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 2 }}>
+            <AssignmentIcon fontSize="small" color="action" />
+            <Typography variant="body2" color="text.secondary">
+              {group.activeAssignments} TPs activos
+            </Typography>
+          </Box>
+
+          {/* Progress and Members Row */}
+          <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start', mb: 2 }}>
+            {/* Progress Section */}
+            <Box sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Progreso del grupo
+                </Typography>
+                <Chip 
+                  label={`${group.groupProgress}%`}
+                  color={getProgressColor(group.groupProgress)}
+                  size="small"
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                15 de 28 ejercicios completados
               </Typography>
-              <Chip 
-                label={`${group.groupProgress}%`}
+              <LinearProgress 
+                variant="determinate" 
+                value={group.groupProgress}
                 color={getProgressColor(group.groupProgress)}
-                size="small"
+                sx={{ height: 8, borderRadius: 4 }}
               />
             </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={group.groupProgress}
-              color={getProgressColor(group.groupProgress)}
-              sx={{ height: 8, borderRadius: 4 }}
-            />
+
+            {/* Group Members Section */}
+            <Box sx={{ flex: '1 1 0%', minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Miembros que forman parte del grupo:
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AvatarGroup 
+                  max={6} 
+                  sx={{ 
+                    '& .MuiAvatar-root': { 
+                      width: 32, 
+                      height: 32, 
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                      '&:hover': { opacity: 0.8 }
+                    }
+                  }}
+                >
+                  {group.members.map((member) => (
+                    <Avatar
+                      key={member.id}
+                      sx={{ 
+                        bgcolor: 'primary.main'
+                      }}
+                    >
+                      {member.avatar}
+                    </Avatar>
+                  ))}
+                  <Avatar
+                    sx={{ 
+                      width: 32, 
+                      height: 32, 
+                      fontSize: '0.8rem',
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                      bgcolor: 'transparent',
+                      color: 'primary.main',
+                      cursor: 'pointer',
+                      '&:hover': { 
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        opacity: 0.9 
+                      }
+                    }}
+                    onClick={handleOpenCodeModal}
+                  >
+                    <AddIcon fontSize="small" />
+                  </Avatar>
+                </AvatarGroup>
+              </Box>
+            </Box>
           </Box>
 
-          {/* Stats */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <PersonIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {group.totalMembers} miembros
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <AssignmentIcon fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {group.activeAssignments} TPs activos
-              </Typography>
-            </Box>
-          </Box>
+
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Members Section */}
+        {/* Active Assignments Section */}
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Miembros del grupo
+          TPs activos
         </Typography>
         
-        <List sx={{ pt: 0 }}>
-          {group.members.map((member) => (
-            <ListItem key={member.id} sx={{ px: 0, py: 1 }}>
-              <ListItemAvatar>
-                <Avatar sx={{ width: 40, height: 40, fontSize: '0.9rem' }}>
-                  {member.avatar}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText 
-                primary={member.name}
-                secondary={member.role || 'Miembro'}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Mock active assignments */}
+          <Box sx={{ 
+            p: 2, 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            borderRadius: 2,
+            '&:hover': { 
+              borderColor: 'primary.main',
+              bgcolor: 'action.hover' 
+            }
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                TP 1 - Algoritmos de Ordenamiento
+              </Typography>
+              <Chip 
+                label="En progreso"
+                size="small"
+                color="warning"
+                sx={{ fontSize: '0.7rem' }}
               />
-            </ListItem>
-          ))}
-        </List>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Fecha límite: 15 de Marzo, 2025
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Progreso
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    75%
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={75}
+                  color="warning"
+                  sx={{ height: 6, borderRadius: 3 }}
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                6 de 8 ejercicios
+              </Typography>
+            </Box>
+          </Box>
 
-        {/* Add Member Button */}
-        <Box sx={{ mt: 2 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            sx={{ textTransform: 'none' }}
-          >
-            + Invitar miembro
-          </Button>
+          <Box sx={{ 
+            p: 2, 
+            border: '1px solid', 
+            borderColor: 'divider', 
+            borderRadius: 2,
+            '&:hover': { 
+              borderColor: 'primary.main',
+              bgcolor: 'action.hover' 
+            }
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                TP 2 - Estructuras de Datos
+              </Typography>
+              <Chip 
+                label="Pendiente"
+                size="small"
+                color="default"
+                sx={{ fontSize: '0.7rem' }}
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Fecha límite: 22 de Marzo, 2025
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Progreso
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    25%
+                  </Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={25}
+                  color="primary"
+                  sx={{ height: 6, borderRadius: 3 }}
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                2 de 8 ejercicios
+              </Typography>
+            </Box>
+          </Box>
         </Box>
       </DialogContent>
 
@@ -228,6 +385,84 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
           {showDelete ? 'Cancelar' : 'Editar'}
         </Button>
       </DialogActions>
+
+      {/* Code Modal */}
+      <Dialog 
+        open={showCodeModal} 
+        onClose={handleCloseCodeModal}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" component="span">
+            Invitar a tu grupo
+          </Typography>
+          <IconButton onClick={handleCloseCodeModal} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <Divider />
+
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Comparte este código con tus amigos para que se unan al grupo:
+          </Typography>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TextField
+              value="GRP-ABC123"
+              fullWidth
+              variant="outlined"
+              size="small"
+              InputProps={{
+                readOnly: true,
+                sx: { 
+                  fontFamily: 'monospace',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.1em'
+                }
+              }}
+            />
+            <IconButton 
+              color="primary" 
+              onClick={handleCopyCode}
+              sx={{ 
+                bgcolor: 'primary.main',
+                color: 'white',
+                '&:hover': { bgcolor: 'primary.dark' }
+              }}
+            >
+              <ContentCopyIcon />
+            </IconButton>
+          </Box>
+          
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            El código expira en 7 días
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, gap: 1, justifyContent: 'center' }}>
+          <Button
+            variant="contained"
+            onClick={handleCloseCodeModal}
+            sx={{ textTransform: 'none' }}
+          >
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   )
 }

@@ -57,6 +57,11 @@ interface Assignment {
   progress: number
   exercises: number
   completedExercises: number
+  createdBy?: {
+    id: number
+    name: string
+    avatar?: string
+  }
 }
 
 interface AssignmentModalProps {

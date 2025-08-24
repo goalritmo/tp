@@ -34,6 +34,11 @@ export default function Assignments() {
       progress: 100,
       exercises: 5,
       completedExercises: 5,
+      createdBy: {
+        id: 1,
+        name: 'María González',
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+      }
     },
     {
       id: 2,
@@ -43,6 +48,11 @@ export default function Assignments() {
       progress: 60,
       exercises: 8,
       completedExercises: 5,
+      createdBy: {
+        id: 2,
+        name: 'Carlos Rodríguez',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
+      }
     },
   ]
 
