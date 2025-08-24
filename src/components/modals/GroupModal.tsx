@@ -72,7 +72,7 @@ export default function GroupModal({ open, onClose, group }: GroupModalProps) {
   ])
   const [groupCode, setGroupCode] = useState('GRP-ABC123')
   const [isEditingCode, setIsEditingCode] = useState(false)
-  const [isAdmin] = useState(true) // TODO: Esto debería venir del contexto de autenticación
+  const [isAdmin] = useState(false) // TODO: Esto debería venir del contexto de autenticación
   
   if (!group) return null
 
